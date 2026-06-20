@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { mockApi } from "../../services/mockApi"
 
-const CallTrackerForm = ({ 
+const EnquiryTrackerForm = ({ 
   onClose = () => window.history.back(), 
   initialCompanyName = "",
   initialPhoneNumber = "",
@@ -271,7 +271,7 @@ const CallTrackerForm = ({
       <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6 border-b">
           <div className="flex justify-between items-center">
-            <h2 className="text-xl font-bold">New Call Tracker</h2>
+            <h2 className="text-xl font-bold">New Enquiry Tracker</h2>
             <button
               type="button"
               onClick={() => {
@@ -727,4 +727,4 @@ const CallTrackerForm = ({
   )
 }
 
-export default CallTrackerForm
+export default EnquiryTrackerForm

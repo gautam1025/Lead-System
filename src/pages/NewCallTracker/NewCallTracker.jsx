@@ -4,458 +4,265 @@ import { useState, useContext, useEffect } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { AuthContext } from "../../App"
 import { mockApi } from "../../services/mockApi"
-import MakeQuotationForm from "../../components/call-tracker/MakeQuotationFrom"
-import QuotationValidationForm from "../../components/call-tracker/QuotationValidationForm"
-import OrderExpectedForm from "../../components/call-tracker/OrderExpectedForm"
-import OrderStatusForm from "../../components/call-tracker/OrderStatusFrom"
 
 function NewCallTracker() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const leadId = searchParams.get("leadId")
+  const leadNo = searchParams.get("leadNo")
   const { showNotification } = useContext(AuthContext)
   const [customerFeedbackOptions, setCustomerFeedbackOptions] = useState([])
 
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [currentStage, setCurrentStage] = useState("")
+  const [enquiryStatus, setEnquiryStatus] = useState("")
+  const [items, setItems] = useState([{ id: "1", name: "", quantity: "" }])
   const [formData, setFormData] = useState({
-    enquiryNo: leadId || "",
-    enquiryStatus: "",
-    customerFeedback: "",
-  })
-  const [enquiryStatusOptions, setEnquiryStatusOptions] = useState([])
-  const [isLoadingDropdown, setIsLoadingDropdown] = useState(false)
-
-  // State for MakeQuotationForm data
-  const [quotationData, setQuotationData] = useState({
-    companyName: "",
-    sendQuotationNo: "",
-    quotationSharedBy: "",
-    quotationNumber: "",
-    valueWithoutTax: "",
-    valueWithTax: "",
-    remarks: "",
-    quotationFile: null,
-    quotationFileUrl: "", // New field to store the uploaded file URL
-  })
-
-  // State for QuotationValidationForm data
-  const [validationData, setValidationData] = useState({
-    validationQuotationNumber: "",
-    validatorName: "",
-    sendStatus: "",
-    validationRemark: "",
-    faqVideo: "no",
-    productVideo: "no",
-    offerVideo: "no",
-    productCatalog: "no",
-    productImage: "no",
-  })
-
-  // State for OrderExpectedForm data
-  const [orderExpectedData, setOrderExpectedData] = useState({
+    leadNo: "",
+    nextAction: "",
     nextCallDate: "",
     nextCallTime: "",
-    followupStatus: "",
+    customerFeedback: "",
+    enquiryApproach: "", // Add this new field
   })
 
-  // State for OrderStatusForm data
-  const [orderStatusData, setOrderStatusData] = useState({
-    orderStatusQuotationNumber: "",
-    orderStatus: "",
-    acceptanceVia: "",
-    paymentMode: "",
-    paymentTerms: "",
-    transportMode: "",
-    creditDays: "",
-    creditLimit: "",
-    conveyedForRegistration: "",
-    orderVideo: "",
-    acceptanceFile: null,
-    orderRemark: "",
-    apologyVideo: null,
-    reasonStatus: "",
-    reasonRemark: "",
-    holdReason: "",
-    holdingDate: "",
-    holdRemark: "",
-  })
+  const [leadStatus, setLeadStatus] = useState("")
 
-  // Add this function inside the NewCallTracker component
-  const fetchLatestQuotationNumber = async (enquiryNo) => {
+  // New state for dropdown options
+  const [enquiryStates, setEnquiryStates] = useState([])
+  const [salesTypes, setSalesTypes] = useState([])
+  const [productCategories, setProductCategories] = useState([]) // New state for product categories
+  const [nobOptions, setNobOptions] = useState([])
+  const [enquiryApproachOptions, setEnquiryApproachOptions] = useState([])
+
+  // Function to fetch dropdown data from DROPDOWNSHEET
+  // Function to fetch dropdown data from DROPDOWNSHEET
+  // Function to fetch dropdown data from DROPDOWNSHEET
+  const fetchDropdownData = async () => {
     try {
-      return await mockApi.fetchLatestQuotationNumber(enquiryNo)
+      const data = await mockApi.fetchDropdowns()
+
+      if (data) {
+        setEnquiryStates(data.states || [])
+        // Using some default mappings for other dropdowns as they might not be in the initial simplified mockApi response
+        // In a real scenario, mockApi.fetchDropdowns should return all these.
+        setSalesTypes(["NBD", "CRR", "NBD_CRR"])
+        setProductCategories(["Product 1", "Product 2", "Product 3"])
+        setNobOptions(data.nobs || [])
+        setEnquiryApproachOptions(["Approach 1", "Approach 2", "Approach 3"])
+        setCustomerFeedbackOptions(["Interested", "Not Interested", "Asked for Quotation", "Callback Later"])
+      }
     } catch (error) {
-      console.error("Error fetching quotation number:", error)
-      return ""
+      console.error("Error fetching dropdown values:", error)
+      // Fallback values
+      setEnquiryStates(["Maharashtra", "Gujarat", "Karnataka", "Tamil Nadu", "Delhi"])
+      setSalesTypes(["NBD", "CRR", "NBD_CRR"])
+      setProductCategories(["Product 1", "Product 2", "Product 3"])
+      setNobOptions(["NOB 1", "NOB 2", "NOB 3"])
+      setEnquiryApproachOptions(["Approach 1", "Approach 2", "Approach 3"]) // Fallback for enquiry approach
     }
   }
 
-  // Fetch dropdown options from DROPDOWN sheet column G
   useEffect(() => {
-    const fetchDropdownOptions = async () => {
-      try {
-        setIsLoadingDropdown(true)
+    // Fetch dropdown data when component mounts
+    fetchDropdownData()
 
-        const data = await mockApi.fetchDropdowns()
-
-        if (data) {
-          // We need to map the mock data to what this component expects
-          // Assuming fetchDropdowns returns general dropdowns structure
-          // Adjust if specific structure needed
-          setEnquiryStatusOptions(data.statuses || ["hot", "warm", "cold"]) // Add statuses to mockApi/dummyData if missing
-          setCustomerFeedbackOptions(data.feedbacks || ["Interested", "Not Interested"])
-        }
-      } catch (error) {
-        console.error("Error fetching dropdown options:", error)
-        // Fallback options if fetch fails
-        setEnquiryStatusOptions(["hot", "warm", "cold"])
-        setCustomerFeedbackOptions(["Feedback 1", "Feedback 2", "Feedback 3"])
-      } finally {
-        setIsLoadingDropdown(false)
-      }
-    }
-
-    fetchDropdownOptions()
-  }, [])
-
-  // Update form data when leadId changes
-  useEffect(() => {
-    if (leadId) {
-      setFormData(prevData => ({
+    // Prepopulate lead number if available
+    if (leadNo) {
+      setFormData((prevData) => ({
         ...prevData,
-        enquiryNo: leadId
+        leadNo: leadNo,
       }))
     }
-  }, [leadId])
+  }, [leadNo])
 
-  const handleInputChange = (e) => {
+  const handleChange = (e) => {
     const { id, value } = e.target
-    setFormData(prevData => ({
+    setFormData((prevData) => ({
       ...prevData,
-      [id]: value
+      [id]: value,
     }))
   }
 
-  // Handler for quotation form data updates
-  const handleQuotationChange = (field, value) => {
-    setQuotationData(prev => ({
-      ...prev,
-      [field]: value
-    }))
+  const calculateTotalQuantity = () => {
+    return items.reduce((total, item) => {
+      const quantity = parseInt(item.quantity) || 0
+      return total + quantity
+    }, 0)
   }
 
-  // Handler for validation form data updates
-  const handleValidationChange = (field, value) => {
-    setValidationData(prev => ({
-      ...prev,
-      [field]: value
-    }))
-  }
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setIsSubmitting(true)
 
-  // Handler for order expected form data updates
-  const handleOrderExpectedChange = (field, value) => {
-    setOrderExpectedData(prev => ({
-      ...prev,
-      [field]: value
-    }))
-  }
+    try {
+      const currentDate = new Date()
+      const formattedDate = formatDate(currentDate)
 
-  // Handler for order status form data updates
-  const handleOrderStatusChange = (field, value) => {
-    setOrderStatusData(prev => ({
-      ...prev,
-      [field]: value
-    }))
+      // Prepare base row data (columns A-E)
+      const rowData = [
+        formattedDate, // A: Current date
+        formData.leadNo, // B: Lead Number
+        document.getElementById("customerFeedback").value, // C: Customer feedback
+        leadStatus, // D: Hot/Cold/Warm status
+        enquiryStatus, // E: Enquiry Status
+      ]
+
+      // Handle different scenarios
+      if (enquiryStatus === "expected") {
+        // Explicitly add columns F-K as empty (6 empty columns)
+        rowData.push("", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "")
+
+        // Then add columns V, W, X
+        rowData.push(
+          document.getElementById("nextAction").value, // V: Next action
+          document.getElementById("nextCallDate").value, // W: Next call date
+          document.getElementById("nextCallTime").value, // X: Next call time
+        )
+      }
+      else if (enquiryStatus === "yes") {
+        // Add columns F-K
+        rowData.push(
+          document.getElementById("enquiryDate").value, // F: Enquiry Received Date
+          document.getElementById("enquiryState").value, // G: Enquiry for State
+          document.getElementById("projectName").value, // H: Project Name (NOB)
+          document.getElementById("salesType").value, // I: Sales Type
+          formData.enquiryApproach, // J: Enquiry Approach
+          "", // K: Project Value (empty)
+        )
+
+        // Handle first 5 items (columns L-U)
+        const first5Items = items.slice(0, 5)
+
+        // Add first 5 items in pairs (name, quantity)
+        first5Items.forEach((item) => {
+          rowData.push(item.name || "") // Product category
+          rowData.push(item.quantity || "0") // Quantity (0 if null/empty)
+        })
+
+        // If less than 5 items, fill remaining slots with empty values
+        const remainingSlots = 5 - first5Items.length
+        for (let i = 0; i < remainingSlots; i++) {
+          rowData.push("", "0") // Empty name and 0 quantity
+        }
+
+        // Pad to reach column AB (index 27)
+        while (rowData.length < 27) {
+          rowData.push("")
+        }
+
+        // Add tracking status in column AB (index 27)
+        rowData.push("Pending")
+
+        // Handle items 6 and onwards as JSON in column AC (index 28)
+        if (items.length > 5) {
+          const additionalItems = items.slice(5).map(item => ({
+            name: item.name || "",
+            quantity: item.quantity || "0"
+          }))
+          rowData.push(JSON.stringify(additionalItems)) // Column AC
+        } else {
+          rowData.push("") // Empty if no additional items
+        }
+
+        // Add total quantity in column AD (index 29)
+        rowData.push(calculateTotalQuantity().toString())
+
+      } else if (enquiryStatus === "not-interested") {
+        // Pad columns F-K and then V-X with empty values
+        rowData.push("", "", "", "", "", "", "", "", "")
+      }
+
+      console.log("Row Data to be submitted:", rowData)
+
+      // Send the data
+      const result = await mockApi.submitFollowUp({
+        ...formData,
+        leadStatus,
+        enquiryStatus,
+        items,
+        rowData // Keeping raw rowData for structure if needed by mockApi later, or better yet pass structured data
+      })
+
+      if (result.success) {
+        showNotification("Follow-up recorded successfully", "success")
+        navigate("/call-tracker")
+      } else {
+        showNotification("Error recording follow-up: " + (result.error || "Unknown error"), "error")
+      }
+    } catch (error) {
+      console.error("Error submitting form:", error)
+      showNotification("Error submitting form: " + error.message, "error")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   // Function to format date as dd/mm/yyyy
   const formatDate = (date) => {
-    const day = String(date.getDate()).padStart(2, '0')
-    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, "0")
+    const month = String(date.getMonth() + 1).padStart(2, "0")
     const year = date.getFullYear()
     return `${day}/${month}/${year}`
   }
 
-  // Function to upload image/video to Google Drive
-  const uploadFileToDrive = async (file, fileType = "image") => {
-    try {
-      return await mockApi.uploadFile(file)
-    } catch (error) {
-      console.error("Error uploading file:", error)
-      throw error
+  const addItem = () => {
+    // Define maximum number of items allowed
+    const MAX_ITEMS = 300
+
+    // Only add a new item if we haven't reached the maximum
+    if (items.length < MAX_ITEMS) {
+      const newId = (items.length + 1).toString()
+      setItems([...items, { id: newId, name: "", quantity: "" }])
     }
   }
 
-
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-
-    try {
-      const currentDate = new Date();
-      const formattedDate = formatDate(currentDate);
-
-      // If there's a quotation file and it's an image, upload it first
-      let fileUrl = "";
-      if (currentStage === "make-quotation" && quotationData.quotationFile) {
-        const fileType = quotationData.quotationFile.type.startsWith("image/") ? "image" : "pdf";
-        showNotification(`Uploading ${fileType}...`, "info");
-        fileUrl = await uploadFileToDrive(quotationData.quotationFile, fileType);
-        showNotification(`${fileType.charAt(0).toUpperCase() + fileType.slice(1)} uploaded successfully`, "success");
-      }
-
-      // If there are order status files, upload them
-      let acceptanceFileUrl = "";
-      let apologyVideoUrl = "";
-
-      // Generate order number if status is "yes"
-      let orderNumber = "";
-      if (currentStage === "order-status" && orderStatusData.orderStatus === "yes") {
-        // Get the latest order number from the sheet
-        const latestOrderNumber = await getLatestOrderNumber();
-        orderNumber = generateNextOrderNumber(latestOrderNumber);
-
-        if (orderStatusData.acceptanceFile) {
-          showNotification("Uploading acceptance file...", "info");
-          acceptanceFileUrl = await uploadFileToDrive(orderStatusData.acceptanceFile);
-          showNotification("Acceptance file uploaded successfully", "success");
-        }
-      } else if (currentStage === "order-status" && orderStatusData.orderStatus === "no") {
-        if (orderStatusData.apologyVideo) {
-          showNotification("Uploading apology video...", "info");
-          apologyVideoUrl = await uploadFileToDrive(orderStatusData.apologyVideo);
-          showNotification("Apology video uploaded successfully", "success");
-        }
-      }
-
-      // Prepare row data based on the selected stage
-      let rowData = [
-        formattedDate, // Date
-        formData.enquiryNo, // Enquiry No
-        formData.enquiryStatus, // Status (hot/warm/cold)
-        formData.customerFeedback, // Customer feedback
-        currentStage, // Current Stage
-      ];
-
-      // Add stage-specific data based on what's selected
-      if (currentStage === "make-quotation") {
-        rowData.push(
-          quotationData.sendQuotationNo,
-          quotationData.quotationSharedBy,
-          quotationData.quotationNumber, // Column H
-          quotationData.valueWithoutTax,
-          quotationData.valueWithTax,
-          fileUrl || "", // Add the image URL in column K
-          quotationData.remarks // Add the remarks in column L
-        );
-        // Add empty values for columns M-AI (validation, order expected, and order status columns)
-        rowData.push(...new Array(29).fill(""));
-      } else if (currentStage === "quotation-validation") {
-        // Add empty values for columns F-G
-        rowData.push("", "");
-        // Add quotation number in column H
-        rowData.push(validationData.validationQuotationNumber);
-        // Add empty values for columns I-L (remaining quotation data)
-        rowData.push("", "", "", "");
-        // Add validation data for columns M-T
-        rowData.push(
-          validationData.validatorName, // Column M
-          validationData.sendStatus, // Column N
-          validationData.validationRemark, // Column O
-          validationData.faqVideo, // Column P
-          validationData.productVideo, // Column Q
-          validationData.offerVideo, // Column R
-          validationData.productCatalog, // Column S
-          validationData.productImage // Column T
-        );
-        // Add empty values for columns U-AI (order expected and order status columns)
-        rowData.push(...new Array(15).fill(""));
-      } else if (currentStage === "order-expected") {
-        // Add empty values for columns F-T
-        rowData.push(...new Array(15).fill(""));
-        // Add order expected data for columns U-V
-        rowData.push(
-          orderExpectedData.nextCallDate, // Column U
-          orderExpectedData.nextCallTime // Column V
-        );
-        rowData.push(...new Array(16).fill(""));
-        // Add followup status in column AM
-        rowData.push(orderExpectedData.followupStatus); // Column AM
-        // Add empty values for columns W-AI (order status columns)
-        rowData.push(...new Array(17).fill(""));
-      } else if (currentStage === "order-status") {
-        // Add empty values for columns F-G
-        rowData.push("", "");
-        // Add quotation number in column H
-        rowData.push(orderStatusData.orderStatusQuotationNumber);
-        // Add empty values for columns I-V
-        rowData.push(...new Array(14).fill(""));
-        // Add order status in column W
-        rowData.push(orderStatusData.orderStatus);
-
-        // Based on order status, add data to appropriate columns
-        if (orderStatusData.orderStatus === "yes") {
-          // Add YES data for columns X-AC
-          rowData.push(
-            orderStatusData.acceptanceVia, // Column X
-            orderStatusData.paymentMode, // Column Y
-            orderStatusData.paymentTerms, // Column Z
-            orderStatusData.transportMode || "", // Column AD (new field)
-            orderStatusData.conveyedForRegistration || "", // Column AE (new field)
-            orderStatusData.orderVideo, // Column AA
-            acceptanceFileUrl || "", // Column AB
-            orderStatusData.orderRemark // Column AC
-          );
-          rowData.push(...new Array(8).fill(""));
-          rowData.push(
-            orderStatusData.creditDays, // Column AN - Credit Days
-            orderStatusData.creditLimit // Column AO - Credit Limit
-          );
-          rowData.push("");
-          // Add the generated order number in column AQ (index 42)
-          rowData.push(orderNumber); // Column AQ - Order Number
-          rowData.push(
-            orderStatusData.destination || "", // Column AR - Destination
-            orderStatusData.poNumber || "" // Column AS - PO Number
-          );
-          // Add empty values for remaining columns (AF-AI)
-          rowData.push(...new Array(4).fill(""));
-        } else if (orderStatusData.orderStatus === "no") {
-          // Add empty values for YES columns (X-AE)
-          rowData.push(...new Array(8).fill(""));
-          // Add NO data for columns AF-AH
-          rowData.push(
-            apologyVideoUrl || "", // Column AF
-            orderStatusData.reasonStatus, // Column AG
-            orderStatusData.reasonRemark // Column AH
-          );
-          // Add empty values for HOLD columns (AI-AL)
-          rowData.push(...new Array(3).fill(""));
-        } else if (orderStatusData.orderStatus === "hold") {
-          // Add empty values for YES and NO columns (X-AH)
-          rowData.push(...new Array(11).fill(""));
-          // Add HOLD data for columns AI-AL
-          rowData.push(
-            orderStatusData.holdReason, // Column AI
-            orderStatusData.holdingDate, // Column AJ
-            orderStatusData.holdRemark // Column AK
-          );
-          // Add empty value for remaining column
-          rowData.push(""); // Column AL
-        } else {
-          // If no status selected, fill all columns with empty
-          rowData.push(...new Array(12).fill(""));
-        }
-      } else {
-        // Add empty values for all stage-specific columns (F-AI)
-        rowData.push(...new Array(30).fill(""));
-      }
-
-      console.log("Row Data to be submitted:", rowData);
-
-      const result = await mockApi.submitCallTracker({
-        rowData // simplified for mock
-      })
-
-      if (result.success) {
-        showNotification("Call tracker updated successfully", "success");
-        navigate("/call-tracker");
-      } else {
-        showNotification(
-          "Error updating call tracker: " + (result.error || "Unknown error"),
-          "error"
-        );
-      }
-    } catch (error) {
-      console.error("Error submitting form:", error);
-      showNotification("Error submitting form: " + error.message, "error");
-    } finally {
-      setIsSubmitting(false);
+  const removeItem = (id) => {
+    if (items.length > 1) {
+      setItems(items.filter((item) => item.id !== id))
     }
-  };
+  }
 
-  // Helper function to get the latest order number from the sheet
-  const getLatestOrderNumber = async () => {
-    try {
-      return await mockApi.getLatestOrderNumber()
-    } catch (error) {
-      console.error("Error fetching latest order number:", error);
-      return "DO-00"; // Fallback
-    }
-  };
-
-  // Helper function to generate the next order number
-  const generateNextOrderNumber = (latestOrderNumber) => {
-    // Extract the numeric part
-    const match = latestOrderNumber.match(/DO-(\d+)/);
-    let nextNumber = 1;
-
-    if (match && match[1]) {
-      nextNumber = parseInt(match[1], 10) + 1;
-    }
-
-    // Format with leading zeros
-    const paddedNumber = String(nextNumber).padStart(2, "0");
-    return `DO-${paddedNumber}`;
-  };
+  const updateItem = (id, field, value) => {
+    setItems(items.map((item) => (item.id === id ? { ...item, [field]: value } : item)))
+  }
 
   return (
     <div className="container mx-auto py-10 px-4">
       <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-md">
         <div className="p-6 border-b">
-          <h2 className="text-xl font-bold">Call Tracker</h2>
+          <h2 className="text-xl font-bold">Lead Follow-Up</h2>
           <p className="text-sm text-slate-500">
-            Track the progress of the enquiry
-            {formData.enquiryNo && <span className="font-medium"> for Enquiry #{formData.enquiryNo}</span>}
+            Record details of the follow-up call
+            {leadId && <span className="font-medium"> for Lead #{leadId}</span>}
           </p>
         </div>
         <form onSubmit={handleSubmit}>
           <div className="p-6 space-y-6">
             <div className="space-y-2">
               <label htmlFor="enquiryNo" className="block text-sm font-medium text-gray-700">
-                Enquiry No.
+                Lead No.
               </label>
               <input
                 id="enquiryNo"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500"
-                placeholder="En-01"
-                value={formData.enquiryNo}
-                onChange={handleInputChange}
+                placeholder="LD-001"
+                value={formData.leadNo}
+                onChange={handleChange}
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="enquiryStatus" className="block text-sm font-medium text-gray-700">
-                Enquiry Status
-              </label>
-              <select
-                id="enquiryStatus"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500"
-                value={formData.enquiryStatus}
-                onChange={handleInputChange}
-                required
-              >
-                <option value="">Select status</option>
-                {enquiryStatusOptions.map((option, index) => (
-                  <option key={index} value={option.toLowerCase()}>{option}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="space-y-2">
               <label htmlFor="customerFeedback" className="block text-sm font-medium text-gray-700">
-                What Did Customer Say
+                What did the customer say?
               </label>
               <input
                 list="customer-feedback-options"
                 id="customerFeedback"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500"
                 placeholder="Select or type customer feedback"
-                value={formData.customerFeedback}
-                onChange={handleInputChange}
+                value={formData.customerFeedback || ""}
+                onChange={handleChange}
                 required
               />
               <datalist id="customer-feedback-options">
@@ -465,128 +272,322 @@ function NewCallTracker() {
               </datalist>
             </div>
 
-
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">Current Stage</label>
+              <label className="block text-sm font-medium text-gray-700">Lead Status</label>
               <div className="space-y-1">
                 <div className="flex items-center space-x-2">
                   <input
                     type="radio"
-                    id="make-quotation"
-                    name="currentStage"
-                    value="make-quotation"
-                    checked={currentStage === "make-quotation"}
-                    onChange={async (e) => {
-                      setCurrentStage(e.target.value)
-                    }}
+                    id="hot"
+                    name="leadStatus"
+                    value="hot"
+                    checked={leadStatus === "Relevant"}
+                    onChange={() => setLeadStatus("Relevant")}
+                    className="h-4 w-4 text-red-600 focus:ring-red-500"
+                  />
+                  <label htmlFor="hot" className="text-sm text-gray-700">
+                    Relevant
+                  </label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    id="warm"
+                    name="leadStatus"
+                    value="warm"
+                    checked={leadStatus === "Not Relevant"}
+                    onChange={() => setLeadStatus("Not Relevant")}
                     className="h-4 w-4 text-sky-600 focus:ring-sky-500"
                   />
-                  <label htmlFor="make-quotation" className="text-sm text-gray-700">
-                    Make Quotation
+                  <label htmlFor="warm" className="text-sm text-gray-700">
+                    Not Relevant
                   </label>
                 </div>
                 {/* <div className="flex items-center space-x-2">
-      <input
-        type="radio"
-        id="quotation-validation"
-        name="currentStage"
-        value="quotation-validation"
-        checked={currentStage === "quotation-validation"}
-        onChange={async (e) => {
-          const stage = e.target.value
-          setCurrentStage(stage)
-          
-          if (formData.enquiryNo) {
-            // Fetch the latest quotation number for this enquiry
-            const quotationNumber = await fetchLatestQuotationNumber(formData.enquiryNo)
-            if (quotationNumber) {
-              setValidationData(prev => ({
-                ...prev,
-                validationQuotationNumber: quotationNumber
-              }))
-            }
-          }
-        }}
-        className="h-4 w-4 text-sky-600 focus:ring-sky-500"
-      />
-      <label htmlFor="quotation-validation" className="text-sm text-gray-700">
-        Quotation Validation
-      </label>
-    </div> */}
+                  <input
+                    type="radio"
+                    id="cold"
+                    name="leadStatus"
+                    value="cold"
+                    checked={leadStatus === "cold"}
+                    onChange={() => setLeadStatus("cold")}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                  />
+                  <label htmlFor="cold" className="text-sm text-gray-700">
+                    Cold
+                  </label>
+                </div> */}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">Enquiry Received Status</label>
+              <div className="space-y-1">
                 <div className="flex items-center space-x-2">
                   <input
                     type="radio"
-                    id="order-expected"
-                    name="currentStage"
-                    value="order-expected"
-                    checked={currentStage === "order-expected"}
-                    onChange={async (e) => {
-                      setCurrentStage(e.target.value)
-                    }}
+                    id="yes"
+                    name="enquiryStatus"
+                    value="yes"
+                    checked={enquiryStatus === "yes"}
+                    onChange={() => setEnquiryStatus("yes")}
                     className="h-4 w-4 text-sky-600 focus:ring-sky-500"
                   />
-                  <label htmlFor="order-expected" className="text-sm text-gray-700">
-                    Order Expected
+                  <label htmlFor="yes" className="text-sm text-gray-700">
+                    Yes
                   </label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <input
                     type="radio"
-                    id="order-status"
-                    name="currentStage"
-                    value="order-status"
-                    checked={currentStage === "order-status"}
-                    onChange={async (e) => {
-                      const stage = e.target.value
-                      setCurrentStage(stage)
-
-                      if (formData.enquiryNo) {
-                        // Fetch the latest quotation number for this enquiry
-                        const quotationNumber = await fetchLatestQuotationNumber(formData.enquiryNo)
-                        if (quotationNumber) {
-                          setOrderStatusData(prev => ({
-                            ...prev,
-                            orderStatusQuotationNumber: quotationNumber
-                          }))
-                        }
-                      }
-                    }}
+                    id="expected"
+                    name="enquiryStatus"
+                    value="expected"
+                    checked={enquiryStatus === "expected"}
+                    onChange={() => setEnquiryStatus("expected")}
                     className="h-4 w-4 text-sky-600 focus:ring-sky-500"
                   />
-                  <label htmlFor="order-status" className="text-sm text-gray-700">
-                    Order Status
+                  <label htmlFor="expected" className="text-sm text-gray-700">
+                    Expected
+                  </label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    id="not-interested"
+                    name="enquiryStatus"
+                    value="not-interested"
+                    checked={enquiryStatus === "not-interested"}
+                    onChange={() => setEnquiryStatus("not-interested")}
+                    className="h-4 w-4 text-sky-600 focus:ring-sky-500"
+                  />
+                  <label htmlFor="not-interested" className="text-sm text-gray-700">
+                    Not Interested
                   </label>
                 </div>
               </div>
             </div>
 
-            {currentStage === "make-quotation" && (
-              <MakeQuotationForm
-                enquiryNo={formData.enquiryNo}
-                formData={quotationData}
-                onFieldChange={handleQuotationChange}
-              />
+            {enquiryStatus === "expected" && (
+              <div className="space-y-4 border p-4 rounded-md">
+                <div className="space-y-2">
+                  <label htmlFor="nextAction" className="block text-sm font-medium text-gray-700">
+                    Next Action
+                  </label>
+                  <input
+                    id="nextAction"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    placeholder="Enter next action"
+                    value={formData.nextAction || ""}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label htmlFor="nextCallDate" className="block text-sm font-medium text-gray-700">
+                      Next Call Date
+                    </label>
+                    <input
+                      id="nextCallDate"
+                      type="date"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500"
+                      value={formData.nextCallDate || ""}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label htmlFor="nextCallTime" className="block text-sm font-medium text-gray-700">
+                      Next Call Time
+                    </label>
+                    <input
+                      id="nextCallTime"
+                      type="time"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500"
+                      value={formData.nextCallTime || ""}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
             )}
-            {currentStage === "quotation-validation" && (
-              <QuotationValidationForm
-                enquiryNo={formData.enquiryNo}
-                formData={validationData}
-                onFieldChange={handleValidationChange}
-              />
-            )}
-            {currentStage === "order-expected" && (
-              <OrderExpectedForm
-                enquiryNo={formData.enquiryNo}
-                formData={orderExpectedData}
-                onFieldChange={handleOrderExpectedChange}
-              />
-            )}
-            {currentStage === "order-status" && (
-              <OrderStatusForm
-                enquiryNo={formData.enquiryNo}
-                formData={orderStatusData}
-                onFieldChange={handleOrderStatusChange}
-              />
+
+            {enquiryStatus === "yes" && (
+              <div className="space-y-6 border p-4 rounded-md">
+                <h3 className="text-lg font-medium">Enquiry Details</h3>
+                <hr className="border-gray-200" />
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label htmlFor="enquiryDate" className="block text-sm font-medium text-gray-700">
+                      Enquiry Received Date
+                    </label>
+                    <input
+                      id="enquiryDate"
+                      type="date"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label htmlFor="enquiryState" className="block text-sm font-medium text-gray-700">
+                      Enquiry for State
+                    </label>
+                    <select
+                      id="enquiryState"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500"
+                      required
+                    >
+                      <option value="">Select state</option>
+                      {enquiryStates.map((state, index) => (
+                        <option key={index} value={state}>
+                          {state}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label htmlFor="projectName" className="block text-sm font-medium text-gray-700">
+                      NOB
+                    </label>
+                    <select
+                      id="projectName"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500"
+                      required
+                    >
+                      <option value="">Select NOB</option>
+                      {nobOptions.map((nob, index) => (
+                        <option key={index} value={nob}>
+                          {nob}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label htmlFor="salesType" className="block text-sm font-medium text-gray-700">
+                      Enquiry Type
+                    </label>
+                    <select
+                      id="salesType"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500"
+                      required
+                    >
+                      <option value="">Select type</option>
+                      {salesTypes.map((type, index) => (
+                        <option key={index} value={type}>
+                          {type}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label htmlFor="enquiryApproach" className="block text-sm font-medium text-gray-700">
+                      Enquiry Approach
+                    </label>
+                    <select
+                      id="enquiryApproach"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500"
+                      value={formData.enquiryApproach}
+                      onChange={handleChange}
+                      required
+                    >
+                      <option value="">Select approach</option>
+                      {enquiryApproachOptions.map((approach, index) => (
+                        <option key={index} value={approach}>
+                          {approach}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium">Items</h4>
+                    <button
+                      type="button"
+                      onClick={addItem}
+                      className="px-3 py-1 text-xs border border-sky-200 text-sky-600 hover:bg-sky-50 rounded-md"
+                      disabled={items.length >= 300}
+                    >
+                      + Add Item ({items.length}/300)
+                    </button>
+                  </div>
+
+                  {items.map((item, index) => (
+                    <div key={item.id} className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+                      <div className="md:col-span-5 space-y-2">
+                        <label htmlFor={`itemName-${item.id}`} className="block text-sm font-medium text-gray-700">
+                          Item Name 1
+                        </label>
+                        <input
+                          list={`item-options-${item.id}`}
+                          id={`itemName-${item.id}`}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500"
+                          value={item.name}
+                          onChange={(e) => updateItem(item.id, "name", e.target.value)}
+                          required
+                          placeholder="Select or type item name"
+                        />
+                        <datalist id={`item-options-${item.id}`}>
+                          {productCategories.map((category, index) => (
+                            <option key={index} value={category} />
+                          ))}
+                        </datalist>
+                      </div>
+
+
+                      <div className="md:col-span-5 space-y-2">
+                        <label htmlFor={`quantity-${item.id}`} className="block text-sm font-medium text-gray-700">
+                          Quantity
+                        </label>
+                        <input
+                          id={`quantity-${item.id}`}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500"
+                          placeholder="Enter quantity"
+                          value={item.quantity}
+                          onChange={(e) => updateItem(item.id, "quantity", e.target.value)}
+                          required
+                        />
+                      </div>
+
+                      <div className="md:col-span-2">
+                        <button
+                          type="button"
+                          onClick={() => removeItem(item.id)}
+                          disabled={items.length === 1}
+                          className="p-2 text-slate-500 hover:text-slate-700 disabled:opacity-50"
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <path d="M3 6h18"></path>
+                            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             )}
           </div>
           <div className="p-6 border-t flex justify-between">
@@ -600,7 +601,7 @@ function NewCallTracker() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-4 py-2 bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-700 hover:to-blue-700 text-white font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500"
+              className="px-4 py-2 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500"
             >
               {isSubmitting ? "Saving..." : "Submit"}
             </button>
