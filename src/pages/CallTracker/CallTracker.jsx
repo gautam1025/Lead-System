@@ -62,24 +62,26 @@ function CallTracker() {
     itemQty: false,
   })
   const [visibleColumnsPending, setVisibleColumnsPending] = useState({
-    action: true,
+    timestamp: true,
     leadId: true,
-    companyName: true,
-    personName: true,
-    phoneNumber: true,
-    nextCallDate: true,
-    nextAction: true,
-    customerSay: true,
+    enquiryType: false,
     leadSource: false,
+    companyName: true,
+    phoneNumber: true,
+    address: true,
+    receiverName: true,
+    assignedTo: true,
+    nextCallDate: true,
+    personName: true,
+    lastFollowUpDate: false,
+    lastFollowUpStatus: false,
+    customerSay: true,
+    nextAction: true,
+    noOfFollowUps: false,
     location: false,
     enquiryStatus: false,
-    assignedTo: false,
     email: false,
-    lastFollowUpDate: false,
-    noOfFollowUps: false,
-    lastFollowUpStatus: false,
     state: false,
-    address: false,
     personName1: false,
     designation1: false,
     phoneNumber1: false,
@@ -91,10 +93,6 @@ function CallTracker() {
     phoneNumber3: false,
     natureOfBusiness: false,
     gst: false,
-    customerRegistrationForm: false,
-    creditAccess: false,
-    creditDays: false,
-    creditLimit: false,
     additionalNotes: false,
     groupName: false,
   })
@@ -639,24 +637,26 @@ function CallTracker() {
   }, [activeTab, searchTerm, companyFilter, personFilter, phoneFilter, dateFilter, filterType]);
 
   const columnOptionsPending = [
-    { key: "action", label: "Action" },
+    { key: "timestamp", label: "Timestamp" },
     { key: "leadId", label: "Lead No." },
-    { key: "companyName", label: "Company Name" },
-    { key: "personName", label: "Person Name" },
-    { key: "phoneNumber", label: "Phone Number" },
-    { key: "nextCallDate", label: "Next Follow Up Date" },
-    { key: "nextAction", label: "Next Action" },
-    { key: "customerSay", label: "Last Follow Up Remarks" },
+    { key: "enquiryType", label: "Enquiry Type" },
     { key: "leadSource", label: "Lead Source" },
+    { key: "companyName", label: "Company Name" },
+    { key: "phoneNumber", label: "Phone No." },
+    { key: "address", label: "Shipping Address" },
+    { key: "receiverName", label: "Lead Receiver Name" },
+    { key: "assignedTo", label: "Assigned To" },
+    { key: "nextCallDate", label: "Calling Date" },
+    { key: "personName", label: "Person Name" },
+    { key: "lastFollowUpDate", label: "Last Follow Up Date" },
+    { key: "lastFollowUpStatus", label: "Last Follow Up Status" },
+    { key: "customerSay", label: "What Did Customer Say" },
+    { key: "nextAction", label: "Next Action" },
+    { key: "noOfFollowUps", label: "No of Follow Ups" },
     { key: "location", label: "Location" },
     { key: "enquiryStatus", label: "Enquiry Status" },
-    { key: "assignedTo", label: "Assigned To" },
     { key: "email", label: "Email Address" },
-    { key: "lastFollowUpDate", label: "Last Follow Up Date" },
-    { key: "noOfFollowUps", label: "No OF Follow Ups" },
-    { key: "lastFollowUpStatus", label: "Last Follow Up Status" },
     { key: "state", label: "State" },
-    { key: "address", label: "Address" },
     { key: "personName1", label: "Person Name 1" },
     { key: "designation1", label: "Designation 1" },
     { key: "phoneNumber1", label: "Phone Number 1" },
@@ -668,19 +668,21 @@ function CallTracker() {
     { key: "phoneNumber3", label: "Phone Number 3" },
     { key: "natureOfBusiness", label: "Nature of Business" },
     { key: "gst", label: "GST Number" },
-    { key: "customerRegistrationForm", label: "Customer Registration Form" },
-    { key: "creditAccess", label: "Credit Access" },
-    { key: "creditDays", label: "Credit Days" },
-    { key: "creditLimit", label: "Credit Limit" },
     { key: "additionalNotes", label: "Additional Notes" },
     { key: "groupName", label: "Group Name" }
   ];
 
   const getHeaders = () => {
     if (activeTab === "pending") {
-      return columnOptionsPending
-        .filter(opt => visibleColumnsPending[opt.key])
-        .map(opt => opt.key === "action" ? { label: "Actions", className: "sticky left-0 bg-gray-50 z-30 shadow-[1px_0_0_0_#e5e7eb] border-r border-gray-200" } : opt.label);
+      const baseHeaders = [
+        { label: "Actions", className: "sticky left-0 bg-gray-50 z-30 shadow-[1px_0_0_0_#e5e7eb] border-r border-gray-200" }
+      ];
+      columnOptionsPending.forEach(opt => {
+        if (visibleColumnsPending[opt.key]) {
+          baseHeaders.push(opt.label);
+        }
+      });
+      return baseHeaders;
     } else {
       return columnOptions
         .filter(opt => visibleColumns[opt.key])
@@ -690,25 +692,24 @@ function CallTracker() {
 
   const renderPendingRow = (followUp, index) => (
     <tr key={`${followUp.leadId}-${index}`} className="hover:bg-slate-50 transition-colors group">
-      {visibleColumnsPending.action && (
-        <td className="px-3 sm:px-4 py-3 sm:py-4 whitespace-nowrap text-sm font-medium sticky left-0 bg-white group-hover:bg-slate-50 z-10 shadow-[1px_0_0_0_#e5e7eb] border-r border-gray-200">
-          <div className="flex flex-col sm:flex-row space-y-1 sm:space-y-0 sm:space-x-2">
-            <Link to={`/call-tracker/new?leadId=${followUp.leadId}&leadNo=${followUp.leadId}`}>
-              <button className="w-full sm:w-auto px-2 sm:px-3 py-1 text-xs border border-sky-200 text-sky-600 hover:bg-sky-50 rounded-md transition-colors whitespace-nowrap">
-                Call Now <ArrowRightIcon className="ml-1 h-3 w-3 inline" />
-              </button>
-            </Link>
-          </div>
+      <td className="px-3 sm:px-4 py-3 sm:py-4 whitespace-nowrap text-sm font-medium sticky left-0 bg-white group-hover:bg-slate-50 z-10 shadow-[1px_0_0_0_#e5e7eb] border-r border-gray-200">
+        <div className="flex flex-col sm:flex-row space-y-1 sm:space-y-0 sm:space-x-2">
+          <Link to={`/call-tracker/new?leadId=${followUp.leadId}&leadNo=${followUp.leadId}`}>
+            <button className="w-full sm:w-auto px-2 sm:px-3 py-1 text-xs border border-sky-200 text-sky-600 hover:bg-sky-50 rounded-md transition-colors whitespace-nowrap">
+              Call Now <ArrowRightIcon className="ml-1 h-3 w-3 inline" />
+            </button>
+          </Link>
+        </div>
+      </td>
+      {visibleColumnsPending.timestamp && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.timestamp}</td>}
+      {visibleColumnsPending.leadId && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm font-medium text-gray-900 whitespace-nowrap">{followUp.leadId}</td>}
+      {visibleColumnsPending.enquiryType && (
+        <td className="px-3 sm:px-4 py-3 sm:py-4 whitespace-nowrap">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+            {followUp.enquiryType}
+          </span>
         </td>
       )}
-      {visibleColumnsPending.leadId && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm font-medium text-gray-900 whitespace-nowrap">{followUp.leadId}</td>}
-      {visibleColumnsPending.companyName && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500"><div className="max-w-[150px] truncate" title={followUp.companyName}>{followUp.companyName}</div></td>}
-      {visibleColumnsPending.personName && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.personName}</td>}
-      {visibleColumnsPending.phoneNumber && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.phoneNumber}</td>}
-      {visibleColumnsPending.nextCallDate && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{displayDate(followUp.nextCallDate, followUp.timestamp)}</td>}
-      {visibleColumnsPending.nextAction && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.nextAction}</td>}
-      {visibleColumnsPending.customerSay && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500"><div className="max-w-[200px] truncate" title={followUp.customerSay}>{followUp.customerSay}</div></td>}
-      
       {visibleColumnsPending.leadSource && (
         <td className="px-3 sm:px-4 py-3 sm:py-4">
           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${followUp.priority === "High" ? "bg-red-100 text-red-800" : followUp.priority === "Medium" ? "bg-blue-100 text-blue-800" : "bg-slate-100 text-slate-800"}`}>
@@ -716,15 +717,22 @@ function CallTracker() {
           </span>
         </td>
       )}
+      {visibleColumnsPending.companyName && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500"><div className="max-w-[150px] truncate" title={followUp.companyName}>{followUp.companyName}</div></td>}
+      {visibleColumnsPending.phoneNumber && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.phoneNumber}</td>}
+      {visibleColumnsPending.address && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.address || "—"}</td>}
+      {visibleColumnsPending.receiverName && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.receiver || "—"}</td>}
+      {visibleColumnsPending.assignedTo && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500"><div className="max-w-[120px] truncate" title={followUp.assignedTo}>{followUp.assignedTo}</div></td>}
+      {visibleColumnsPending.nextCallDate && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{displayDate(followUp.nextCallDate, "-")}</td>}
+      {visibleColumnsPending.personName && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.personName}</td>}
+      {visibleColumnsPending.lastFollowUpDate && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.lastFollowUpDate}</td>}
+      {visibleColumnsPending.lastFollowUpStatus && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.lastFollowUpStatus}</td>}
+      {visibleColumnsPending.customerSay && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500"><div className="max-w-[200px] truncate" title={followUp.customerSay}>{followUp.customerSay}</div></td>}
+      {visibleColumnsPending.nextAction && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.nextAction}</td>}
+      {visibleColumnsPending.noOfFollowUps && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.noOfFollowUps}</td>}
       {visibleColumnsPending.location && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500"><div className="max-w-[120px] truncate" title={followUp.location}>{followUp.location}</div></td>}
       {visibleColumnsPending.enquiryStatus && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500"><div className="max-w-[120px] truncate" title={followUp.enquiryStatus}>{followUp.enquiryStatus}</div></td>}
-      {visibleColumnsPending.assignedTo && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500"><div className="max-w-[120px] truncate" title={followUp.assignedTo}>{followUp.assignedTo}</div></td>}
       {visibleColumnsPending.email && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.email}</td>}
-      {visibleColumnsPending.lastFollowUpDate && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.lastFollowUpDate}</td>}
-      {visibleColumnsPending.noOfFollowUps && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.noOfFollowUps}</td>}
-      {visibleColumnsPending.lastFollowUpStatus && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.lastFollowUpStatus}</td>}
       {visibleColumnsPending.state && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.state}</td>}
-      {visibleColumnsPending.address && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.address}</td>}
       {visibleColumnsPending.personName1 && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.personName1}</td>}
       {visibleColumnsPending.designation1 && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.designation1}</td>}
       {visibleColumnsPending.phoneNumber1 && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.phoneNumber1}</td>}
@@ -736,10 +744,6 @@ function CallTracker() {
       {visibleColumnsPending.phoneNumber3 && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.phoneNumber3}</td>}
       {visibleColumnsPending.natureOfBusiness && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.natureOfBusiness}</td>}
       {visibleColumnsPending.gst && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.gst}</td>}
-      {visibleColumnsPending.customerRegistrationForm && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.customerRegistrationForm}</td>}
-      {visibleColumnsPending.creditAccess && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.creditAccess}</td>}
-      {visibleColumnsPending.creditDays && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.creditDays}</td>}
-      {visibleColumnsPending.creditLimit && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.creditLimit}</td>}
       {visibleColumnsPending.additionalNotes && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.additionalNotes}</td>}
       {visibleColumnsPending.groupName && (
         <td className="px-3 sm:px-4 py-3 sm:py-4 whitespace-nowrap">

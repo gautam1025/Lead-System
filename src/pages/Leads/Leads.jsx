@@ -47,11 +47,6 @@ function ExcelImportModal({ onClose, onSaved }) {
     "Sales Type": "salesType",
     "GST Number": "gstNumber",
     "GST No": "gstNumber",
-    "Customer Registration From": "customerRegistrationFrom",
-    "Customer Registration Form": "customerRegistrationFrom",
-    "Credit Address": "creditAddress",
-    "Credit Days": "creditDays",
-    "Credit Limit": "creditLimit",
     "Additional Notes": "additionalNotes",
     "Additional Note": "additionalNotes",
   }
@@ -88,10 +83,6 @@ function ExcelImportModal({ onClose, onSaved }) {
     { key: "nob", label: "Nature of Business(NOB)" },
     { key: "salesType", label: "Sales Type" },
     { key: "gstNumber", label: "GST Number" },
-    { key: "customerRegistrationFrom", label: "Customer Registration From" },
-    { key: "creditAddress", label: "Credit Address" },
-    { key: "creditDays", label: "Credit Days" },
-    { key: "creditLimit", label: "Credit Limit" },
     { key: "additionalNotes", label: "Additional Notes" },
     { key: "groupName", label: "Group Name" },
   ]
@@ -414,10 +405,6 @@ function Leads() {
     contactPersons: [{ name: "", designation: "", number: "" }],
     state: initialState,
     address: "",
-    customerRegistrationForm: "",
-    creditAccess: "",
-    creditDays: "",
-    creditLimit: "",
     nob: "",
     salesType: "",
     gst: "",
@@ -608,10 +595,6 @@ function Leads() {
           contactPersons: [{ name: "", designation: "", number: "" }],
           state: "",
           address: "",
-          customerRegistrationForm: "",
-          creditAccess: "",
-          creditDays: "",
-          creditLimit: "",
           nob: "",
           salesType: "",
           gst: "",
@@ -668,7 +651,6 @@ function Leads() {
                   "Person 2 Name","Person 2 Designation","Person 2 Phone",
                   "Person 3 Name","Person 3 Designation","Person 3 Phone",
                   "Nature of Business(NOB)","Sales Type","GST Number",
-                  "Customer Registration From","Credit Address","Credit Days","Credit Limit",
                   "Additional Notes"
                 ];
                 const ws = XLSX.utils.aoa_to_sheet([HEADERS]);
@@ -992,71 +974,11 @@ function Leads() {
                 />
               </div>
 
-              <div className="space-y-2">
-                <label htmlFor="customerRegistrationForm" className="block text-sm font-medium text-gray-700">
-                  Customer Registration Form
-                </label>
-                <select
-                  id="customerRegistrationForm"
-                  value={formData.customerRegistrationForm}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Select option</option>
-                  <option value="Yes">Yes</option>
-                  <option value="No">No</option>
-                </select>
-              </div>
 
-              <div className="space-y-2">
-                <label htmlFor="creditAccess" className="block text-sm font-medium text-gray-700">
-                  Credit Access
-                </label>
-                <select
-                  id="creditAccess"
-                  value={formData.creditAccess}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Select option</option>
-                  <option value="Yes">Yes</option>
-                  <option value="No">No</option>
-                </select>
-              </div>
 
-              <div className="space-y-2">
-                <label htmlFor="creditDays" className="block text-sm font-medium text-gray-700">
-                  Credit Days
-                </label>
-                <select
-                  id="creditDays"
-                  value={formData.creditDays}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Select credit days</option>
-                  {creditDaysOptions.map((option, index) => (
-                    <option key={index} value={option}>{option}</option>
-                  ))}
-                </select>
-              </div>
 
-              <div className="space-y-2">
-                <label htmlFor="creditLimit" className="block text-sm font-medium text-gray-700">
-                  Credit Limit
-                </label>
-                <select
-                  id="creditLimit"
-                  value={formData.creditLimit}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Select credit limit</option>
-                  {creditLimitOptions.map((option, index) => (
-                    <option key={index} value={option}>{option}</option>
-                  ))}
-                </select>
-              </div>
+
+
             </div>
 
             <div className="space-y-2">

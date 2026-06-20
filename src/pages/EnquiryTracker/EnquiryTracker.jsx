@@ -71,7 +71,6 @@ function EnquiryTracker() {
     paymentMode: true,
     paymentTerms: true,
     transportMode: true,
-    registrationFrom: true,
     orderVideo: true,
     acceptanceFile: true,
     orderRemark: true,
@@ -85,23 +84,23 @@ function EnquiryTracker() {
   const [visiblePendingColumns, setVisiblePendingColumns] = useState({
     timestamp: true,
     leadId: true,
-    enquiryType: true,
-    receiverName: true,
-    leadSource: true,
-    personName: true,
-    phoneNumber: true,
+    enquiryType: false,
+    leadSource: false,
     companyName: true,
+    phoneNumber: true,
     shippingAddress: true,
+    receiverName: true,
+    salespersonName: true,
+    callingDate: true,
+    personName: true,
     lastFollowUpDate: false,
     lastFollowUpStatus: false,
     customerSay: false,
     nextAction: false,
-    callingDate: true,
     noOfFollowUps: false,
     currentStage: true,
-    salespersonName: true,
-    itemQty: true,
     groupName: true,
+    itemQty: true,
   })
   const [showColumnDropdown, setShowColumnDropdown] = useState(false)
 
@@ -226,8 +225,6 @@ function EnquiryTracker() {
     { key: "acceptanceVia", label: "Acceptance Via" },
     { key: "paymentMode", label: "Payment Mode" },
     { key: "paymentTerms", label: "Payment Terms" },
-    { key: "transportMode", label: "Transport Mode" },
-    { key: "registrationFrom", label: "Registration From" },
     { key: "orderVideo", label: "Order Video" },
     { key: "acceptanceFile", label: "Acceptance File" },
     { key: "orderRemark", label: "Remark" },
@@ -243,20 +240,20 @@ function EnquiryTracker() {
     { key: "timestamp", label: "Timestamp" },
     { key: "leadId", label: "Lead No." },
     { key: "enquiryType", label: "Enquiry Type" },
-    { key: "receiverName", label: "Lead Receiver Name" },
     { key: "leadSource", label: "Lead Source" },
-    { key: "personName", label: "Person Name" },
-    { key: "phoneNumber", label: "Phone No." },
     { key: "companyName", label: "Company Name" },
+    { key: "phoneNumber", label: "Phone No." },
     { key: "shippingAddress", label: "Shipping Address" },
+    { key: "receiverName", label: "Lead Receiver Name" },
+    { key: "salespersonName", label: "Assigned To" },
+    { key: "callingDate", label: "Calling Date" },
+    { key: "personName", label: "Person Name" },
     { key: "lastFollowUpDate", label: "Last Follow Up Date" },
     { key: "lastFollowUpStatus", label: "Last Follow Up Status" },
     { key: "customerSay", label: "What Did Customer Say" },
     { key: "nextAction", label: "Next Action" },
-    { key: "callingDate", label: "Calling Date" },
     { key: "noOfFollowUps", label: "No of Follow Ups" },
     { key: "currentStage", label: "Current Stage" },
-    { key: "salespersonName", label: "Assigned To" },
     { key: "groupName", label: "Group Name" },
     { key: "itemQty", label: "Item/Qty" },
   ]
@@ -470,7 +467,6 @@ function EnquiryTracker() {
           </span>
         </td>
       )}
-      {visiblePendingColumns.receiverName && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.receiverName}</td>}
       {visiblePendingColumns.leadSource && (
         <td className="px-6 py-4 whitespace-nowrap">
           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${tracker.priority === "High" ? "bg-red-100 text-red-800" : tracker.priority === "Medium" ? "bg-blue-100 text-blue-800" : "bg-slate-100 text-slate-800"}`}>
@@ -478,8 +474,6 @@ function EnquiryTracker() {
           </span>
         </td>
       )}
-      {visiblePendingColumns.personName && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.assignedTo}</td>}
-      {visiblePendingColumns.phoneNumber && <td className="px-4 py-4 text-sm text-gray-500">{tracker.phoneNumber}</td>}
       {visiblePendingColumns.companyName && (
         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
           <div className="flex items-center">
@@ -488,19 +482,22 @@ function EnquiryTracker() {
           </div>
         </td>
       )}
+      {visiblePendingColumns.phoneNumber && <td className="px-4 py-4 text-sm text-gray-500">{tracker.phoneNumber}</td>}
       {visiblePendingColumns.shippingAddress && (
         <td className="px-6 py-4 text-sm text-gray-500 max-w-[200px] truncate" title={tracker.shippingAddress}>
           {tracker.shippingAddress || "—"}
         </td>
       )}
+      {visiblePendingColumns.receiverName && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.receiverName}</td>}
+      {visiblePendingColumns.salespersonName && isAdmin() && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.salespersonName}</td>}
+      {visiblePendingColumns.callingDate && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.callingDate}</td>}
+      {visiblePendingColumns.personName && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.assignedTo}</td>}
       {visiblePendingColumns.lastFollowUpDate && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.lastFollowUpDate || "—"}</td>}
       {visiblePendingColumns.lastFollowUpStatus && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.lastFollowUpStatus || "—"}</td>}
       {visiblePendingColumns.customerSay && <td className="px-6 py-4 text-sm text-gray-500 max-w-[200px] truncate" title={tracker.customerSay}>{tracker.customerSay || "—"}</td>}
       {visiblePendingColumns.nextAction && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.nextAction || "—"}</td>}
-      {visiblePendingColumns.callingDate && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.callingDate}</td>}
       {visiblePendingColumns.noOfFollowUps && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.noOfFollowUps || "0"}</td>}
       {visiblePendingColumns.currentStage && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.currentStage}</td>}
-      {visiblePendingColumns.salespersonName && isAdmin() && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.salespersonName}</td>}
       {visiblePendingColumns.groupName && (
         <td className="px-6 py-4 whitespace-nowrap">
           {tracker.groupName ? (
@@ -670,8 +667,6 @@ function EnquiryTracker() {
       {visibleColumns.acceptanceVia && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.acceptanceVia}</td>}
       {visibleColumns.paymentMode && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.paymentMode}</td>}
       {visibleColumns.paymentTerms && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.paymentTerms}</td>}
-      {visibleColumns.transportMode && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.transportMode}</td>}
-      {visibleColumns.registrationFrom && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.registrationFrom}</td>}
       {visibleColumns.orderVideo && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.orderVideo}</td>}
       {visibleColumns.acceptanceFile && (
         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

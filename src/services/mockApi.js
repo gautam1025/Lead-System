@@ -334,7 +334,7 @@ export const mockApi = {
             assignedUser: leadData.salespersonName || "admin", // Simple default
             receiver: leadData.receiverName,
             status: "Pending",
-            followUpDate: "today", // Make it appear today
+            followUpDate: "",
             hasPendingFollowUp: true,
             hasPendingCallTracker: false, // Only becomes true after Follow-Up process completes
             phoneNumber: leadData.phoneNumber || "",
@@ -361,10 +361,6 @@ export const mockApi = {
             phoneNumber3: leadData.contactPersons?.[2]?.number || "",
             natureOfBusiness: leadData.nob || "",
             salesType: leadData.salesType || "",
-            customerRegistrationForm: leadData.customerRegistrationForm || "",
-            creditAccess: leadData.creditAccess || "",
-            creditDays: leadData.creditDays || "",
-            creditLimit: leadData.creditLimit || "",
             additionalNotes: leadData.notes || "",
             groupName: leadData.groupName || ""
         };
@@ -413,7 +409,7 @@ export const mockApi = {
                 assignedUser: leadData.salespersonName || leadData.personName || "admin",
                 receiver: leadData.receiverName || "",
                 status: "Pending",
-                followUpDate: "today",
+                followUpDate: "",
                 hasPendingFollowUp: true,
                 hasPendingCallTracker: false, // Only becomes true after Follow-Up process completes
                 phoneNumber: leadData.phoneNumber || "",
@@ -434,10 +430,6 @@ export const mockApi = {
                 phoneNumber3: leadData.person3Phone || "",
                 natureOfBusiness: leadData.nob || "",
                 salesType: leadData.salesType || "",
-                customerRegistrationForm: leadData.customerRegistrationFrom || "",
-                creditAccess: "",
-                creditDays: leadData.creditDays || "",
-                creditLimit: leadData.creditLimit || "",
                 additionalNotes: leadData.additionalNotes || "",
                 groupName: leadData.groupName || ""
             };
@@ -464,6 +456,8 @@ export const mockApi = {
             timestamp: row.date,
             id: row.leadNumber,
             leadId: row.leadNumber,
+            enquiryType: "Lead",
+            receiver: row.receiver || "",
             companyName: row.company,
             personName: row.scName || row.assignedUser || "John Doe",
             scName: row.scName || "",
@@ -495,10 +489,6 @@ export const mockApi = {
             phoneNumber3: row.phoneNumber3 || "",
             natureOfBusiness: row.natureOfBusiness || "",
             gst: row.gst || "",
-            customerRegistrationForm: row.customerRegistrationForm || "",
-            creditAccess: row.creditAccess || "",
-            creditDays: row.creditDays || "",
-            creditLimit: row.creditLimit || "",
             additionalNotes: row.additionalNotes || "",
             groupName: row.groupName || ""
         })).reverse();
@@ -654,10 +644,6 @@ export const mockApi = {
             designation3: row.designation3 || "",
             phoneNumber3: row.phoneNumber3 || "",
             natureOfBusiness: row.natureOfBusiness || "",
-            customerRegistrationForm: row.customerRegistrationForm || "",
-            creditAccess: row.creditAccess || "",
-            creditDays: row.creditDays || "",
-            creditLimit: row.creditLimit || "",
             additionalNotes: row.additionalNotes || "",
             groupName: row.groupName || "",
             shippingAddress: row.shippingAddress || row.address || ""
