@@ -355,9 +355,31 @@ function NewEnquiryTracker() {
 
       console.log("Row Data to be submitted:", rowData);
 
-      const result = await mockApi.submitCallTracker({
-        rowData // simplified for mock
-      })
+      const submitData = {
+        rowData,
+        leadId: formData.enquiryNo,
+        enquiryStatus: formData.enquiryStatus,
+        customerFeedback: formData.customerFeedback,
+        currentStage,
+        orderNumber,
+        ...quotationData,
+        ...validationData,
+        ...orderExpectedData,
+        ...orderStatusData,
+      };
+
+      if (fileUrl) {
+        submitData.quotationFileUrl = fileUrl;
+        submitData.quotationUpload = fileUrl;
+      }
+      if (acceptanceFileUrl) {
+        submitData.acceptanceFile = acceptanceFileUrl;
+      }
+      if (apologyVideoUrl) {
+        submitData.apologyVideo = apologyVideoUrl;
+      }
+
+      const result = await mockApi.submitCallTracker(submitData);
 
       if (result.success) {
         showNotification("Call tracker updated successfully", "success");

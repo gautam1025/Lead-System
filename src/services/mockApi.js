@@ -598,6 +598,8 @@ export const mockApi = {
                 if (data.enquiryState !== undefined) db.fmsData[leadIndex].state = data.enquiryState;
                 if (data.projectName !== undefined) db.fmsData[leadIndex].natureOfBusiness = data.projectName;
                 if (data.salesType !== undefined) db.fmsData[leadIndex].salesType = data.salesType;
+                if (data.enquiryApproach !== undefined) db.fmsData[leadIndex].enquiryApproach = data.enquiryApproach;
+                if (data.enquiryDate !== undefined) db.fmsData[leadIndex].enquiryDate = data.enquiryDate;
             } else if (data.enquiryStatus === "expected") {
                 db.fmsData[leadIndex].hasPendingFollowUp = true; // Stay in Follow Up pending
                 db.fmsData[leadIndex].followUpDate = data.nextCallDate;
@@ -641,9 +643,10 @@ export const mockApi = {
             stage: "Pending",
             dueDate: "",
             assignedTo: row.assignedUser,
-            currentStage: "Stage 1",
+            currentStage: row.currentStage || "Stage 1",
             callingDate: row.followUpDate || "today",
             itemQty: "",
+            totalQty: "",
             location: row.location || "",
             email: row.email || "",
             state: row.state || "",
@@ -667,7 +670,17 @@ export const mockApi = {
             natureOfBusiness: row.natureOfBusiness || "",
             additionalNotes: row.additionalNotes || "",
             groupName: row.groupName || "",
-            shippingAddress: row.shippingAddress || row.address || ""
+            shippingAddress: row.shippingAddress || row.address || "",
+            // Unified mappings
+            enquiryReceiverName: row.receiver || "",
+            enquiryAssignToProject: row.assignedUser || "",
+            gstNumber: row.gst || "",
+            enquiryDate: row.enquiryDate || row.date || "",
+            enquiryState: row.state || "",
+            projectName: row.natureOfBusiness || "",
+            salesType: row.salesType || "",
+            enquiryApproach: row.enquiryApproach || "",
+            customerFeedback: row.customerSay || "",
         })).reverse();
 
         // History Enquiry Trackers
@@ -680,25 +693,82 @@ export const mockApi = {
             const fmsLead = db.fmsData.find(l => l.leadNumber === leadId) || {};
             const dirEnq = db.enquiryToOrder.find(e => e.leadNumber === leadId) || {};
             const shippingAddress = row.shippingAddress || dirEnq.shippingAddress || fmsLead.shippingAddress || fmsLead.address || "";
-            return {
+            
+            // Format itemQty from array if present
+            let formattedItemQty = "";
+            let totalQtyVal = 0;
+            if (row.items && Array.isArray(row.items)) {
+                formattedItemQty = row.items
+                    .filter(item => item.name && item.quantity && item.quantity !== "0")
+                    .map(item => `${item.name} : ${item.quantity}`)
+                    .join(", ");
+                totalQtyVal = row.items.reduce((sum, item) => sum + (parseInt(item.quantity) || 0), 0);
+            }
+
+            const historyObj = {
                 id: index + 1,
                 timestamp: row.timestamp || row.date,
-                enquiryNo: row.leadNo || row.enquiryNo,
-                companyName: row.companyName || row.company || "Unknown",
+                leadId: leadId,
+                leadSource: row.leadSource || fmsLead.source || dirEnq.leadSource || "Direct",
+                companyName: row.companyName || row.company || fmsLead.company || dirEnq.company || "Unknown",
+                phoneNumber: row.phoneNumber || fmsLead.phoneNumber || dirEnq.phoneNumber || "9876543210",
+                salespersonName: row.salespersonName || fmsLead.scName || fmsLead.assignedUser || dirEnq.salespersonName || row.assignedTo || "admin",
+                currentStage: row.currentStage || "Negotiation",
+                callingDate: row.callingDate || row.nextCallDate || row.date || "",
+                itemQty: formattedItemQty,
+                totalQty: totalQtyVal.toString(),
+                shippingAddress: shippingAddress,
+                enquiryReceiverName: row.enquiryReceiverName || row.receiverName || fmsLead.receiver || dirEnq.receiverName || "",
+                enquiryAssignToProject: row.enquiryAssignToProject || row.assignedTo || fmsLead.assignedUser || "",
+                gstNumber: row.gstNumber || fmsLead.gst || dirEnq.gstNumber || "",
+                enquiryDate: row.enquiryDate || row.date || "",
+                enquiryState: row.enquiryState || fmsLead.state || dirEnq.enquiryState || "",
+                projectName: row.projectName || fmsLead.natureOfBusiness || "",
+                salesType: row.salesType || fmsLead.salesType || "",
+                enquiryApproach: row.enquiryApproach || fmsLead.enquiryApproach || "",
                 enquiryStatus: row.enquiryStatus || "Active",
                 customerFeedback: row.customerFeedback || row.customerSay || "Good",
-                currentStage: row.currentStage || "Negotiation",
-                quotationNumber: row.quotationNo || row.quotationNumber || "Q-123",
+                sendQuotationNo: row.sendQuotationNo || "",
+                quotationSharedBy: row.quotationSharedBy || "",
+                quotationNumber: row.quotationNumber || row.quotationNo || "Q-123",
                 valueWithoutTax: row.valueWithoutTax || "1000",
                 valueWithTax: row.valueWithTax || "1180",
-                nextCallDate: row.nextCallDate || "05/12/2024",
+                quotationUpload: row.quotationFileUrl || row.quotationUpload || "",
+                remarks: row.remarks || row.quotationRemarks || "",
+                quotationRemarks: row.remarks || row.quotationRemarks || "",
+                validatorName: row.validatorName || "",
+                sendStatus: row.sendStatus || "",
+                validationRemark: row.validationRemark || "",
+                faqVideo: row.faqVideo || "no",
+                productVideo: row.productVideo || "no",
+                offerVideo: row.offerVideo || "no",
+                productCatalog: row.productCatalog || "no",
+                productImage: row.productImage || "no",
+                nextCallTime: row.nextCallTime || "",
                 orderStatus: row.orderStatus || "Pending",
-                priority: row.priority || "Medium",
-                callingDate: row.callingDate || "10/12/2024",
-                assignedTo: row.assignedTo || "admin",
-                itemQty: "",
-                shippingAddress: shippingAddress
+                reasonStatus: row.reasonStatus || "",
+                reasonRemark: row.reasonRemark || "",
+                holdReason: row.holdReason || "",
+                holdingDate: row.holdingDate || "",
+                holdRemark: row.holdRemark || "",
+                transportMode: row.transportMode || "",
+                conveyedForRegistration: row.conveyedForRegistration || "",
+                orderNo: row.orderNumber || "",
+                destination: row.destination || "",
+                poNumber: row.poNumber || ""
             };
+
+            // Map individual items 1-5
+            if (row.items && Array.isArray(row.items)) {
+                row.items.forEach((item, idx) => {
+                    if (idx < 5) {
+                        historyObj[`itemName${idx + 1}`] = item.name;
+                        historyObj[`itemQty${idx + 1}`] = item.quantity;
+                    }
+                });
+            }
+
+            return historyObj;
         }).reverse();
 
         // Direct Enquiry Pending
@@ -722,7 +792,18 @@ export const mockApi = {
             currentStage: "Order",
             callingDate: "today",
             itemQty: "",
-            shippingAddress: row.shippingAddress || row.location || ""
+            totalQty: "",
+            shippingAddress: row.shippingAddress || row.location || "",
+            // Map the unified fields
+            enquiryReceiverName: row.receiverName || "",
+            enquiryAssignToProject: row.assignedUser || "",
+            gstNumber: row.gstNumber || "",
+            enquiryDate: row.date || "",
+            enquiryState: row.enquiryState || "",
+            projectName: row.projectName || "",
+            salesType: row.salesType || "",
+            enquiryApproach: row.enquiryApproach || "",
+            customerFeedback: "",
         })).reverse();
 
         return {
@@ -738,17 +819,17 @@ export const mockApi = {
         const db = getDB();
 
         const rowData = data.rowData || [];
-        const leadId = rowData[1] || data.leadId;
-        const enquiryStatus = rowData[2] || data.enquiryStatus || "Active";
-        const customerFeedback = rowData[3] || data.customerFeedback || "Good";
-        const currentStage = rowData[4] || data.currentStage || "Negotiation";
-        const quotationNo = rowData[7] || data.quotationNo || "";
+        const leadId = data.leadId || rowData[1];
+        const enquiryStatus = data.enquiryStatus || rowData[2] || "Active";
+        const customerFeedback = data.customerFeedback || rowData[3] || "Good";
+        const currentStage = data.currentStage || rowData[4] || "Negotiation";
+        const quotationNo = data.quotationNumber || data.validationQuotationNumber || data.orderStatusQuotationNumber || rowData[7] || "";
 
         let companyName = data.companyName || "Unknown Company";
         let assignedTo = data.assignedTo || "admin";
 
         // When Enquiry is processed, check if Order is Received
-        const isOrderReceived = currentStage === "order-status" && String(rowData[22]).toLowerCase() === "yes";
+        const isOrderReceived = currentStage === "order-status" && (data.orderStatus === "yes" || String(rowData[22]).toLowerCase() === "yes");
 
         const leadIndex = db.fmsData.findIndex(l => l.leadNumber === leadId);
         let fmsLead = {};
@@ -765,7 +846,7 @@ export const mockApi = {
                 db.fmsData[leadIndex].customerSay = customerFeedback;
                 db.fmsData[leadIndex].enquiryStatus = enquiryStatus;
                 if (currentStage === "order-expected") {
-                    db.fmsData[leadIndex].followUpDate = rowData[20] || "today"; // column U is nextCallDate
+                    db.fmsData[leadIndex].followUpDate = data.nextCallDate || rowData[20] || "today"; // column U is nextCallDate
                 }
             }
         }
@@ -809,13 +890,15 @@ export const mockApi = {
             leadNo: leadId,
             companyName: companyName,
             assignedTo: assignedTo,
-            nextCallDate: data.nextCallDate || "today",
+            nextCallDate: data.nextCallDate || rowData[20] || "today",
             orderReceived: isOrderReceived ? "Yes" : "No",
             enquiryStatus: enquiryStatus,
             customerFeedback: customerFeedback,
             currentStage: currentStage,
             quotationNo: quotationNo,
-            shippingAddress: shippingAddress
+            shippingAddress: shippingAddress,
+            rowData: rowData,
+            ...data
         });
 
         saveDB(db);

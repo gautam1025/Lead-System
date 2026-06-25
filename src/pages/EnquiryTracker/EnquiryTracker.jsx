@@ -14,6 +14,128 @@ import EnquiryTrackerFilter from "../../components/enquiry-tracker/EnquiryTracke
 const slideIn = "animate-in slide-in-from-right duration-300"
 const fadeIn = "animate-in fade-in duration-300"
 
+const columnsConfig = [
+  { key: "timestamp", label: "Timestamp" },
+  { key: "leadId", label: "Lead No." },
+  { key: "leadSource", label: "Lead Source" },
+  { key: "companyName", label: "Company Name" },
+  { key: "phoneNumber", label: "Phone Number" },
+  { key: "salespersonName", label: "Salesperson Name" },
+  { key: "currentStage", label: "Current Stage" },
+  { key: "callingDate", label: "Calling Date" },
+  { key: "itemQty", label: "Item/Qty" },
+  { key: "totalQty", label: "Total Qty" },
+  { key: "shippingAddress", label: "Shipping Address" },
+  { key: "enquiryReceiverName", label: "Enquiry Receiver Name" },
+  { key: "enquiryAssignToProject", label: "Enquiry Assign to Project" },
+  { key: "gstNumber", label: "GST Number" },
+  { key: "enquiryDate", label: "Enquiry Date" },
+  { key: "enquiryState", label: "Enquiry for State" },
+  { key: "projectName", label: "Project Name" },
+  { key: "salesType", label: "Sales Type" },
+  { key: "enquiryApproach", label: "Enquiry Approach" },
+  { key: "itemName1", label: "Item Name 1" },
+  { key: "itemQty1", label: "Quantity 1" },
+  { key: "itemName2", label: "Item Name 2" },
+  { key: "itemQty2", label: "Quantity 2" },
+  { key: "itemName3", label: "Item Name 3" },
+  { key: "itemQty3", label: "Quantity 3" },
+  { key: "itemName4", label: "Item Name 4" },
+  { key: "itemQty4", label: "Quantity 4" },
+  { key: "itemName5", label: "Item Name 5" },
+  { key: "itemQty5", label: "Quantity 5" },
+  { key: "enquiryStatus", label: "Enquiry Status" },
+  { key: "customerFeedback", label: "Customer Feedback" },
+  { key: "sendQuotationNo", label: "Send Quotation No." },
+  { key: "quotationSharedBy", label: "Quotation Shared By" },
+  { key: "quotationNumber", label: "Quotation Number" },
+  { key: "valueWithoutTax", label: "Quotation Value Without Tax" },
+  { key: "valueWithTax", label: "Quotation Value With Tax" },
+  { key: "quotationUpload", label: "Quotation Upload" },
+  { key: "quotationRemarks", label: "Quotation Remarks" },
+  { key: "validatorName", label: "Quotation Validator Name" },
+  { key: "sendStatus", label: "Quotation Send Status" },
+  { key: "validationRemark", label: "Quotation Validation Remark" },
+  { key: "faqVideo", label: "Send FAQ Video" },
+  { key: "productVideo", label: "Send Product Video" },
+  { key: "offerVideo", label: "Send Offer Video" },
+  { key: "productCatalog", label: "Send Product Catalog" },
+  { key: "productImage", label: "Send Product Image" },
+  { key: "nextCallTime", label: "Next Call Time" },
+  { key: "orderStatus", label: "Order Received Status" },
+  { key: "reasonStatus", label: "If No Reason Status" },
+  { key: "reasonRemark", label: "If No Reason Remark" },
+  { key: "holdReason", label: "Customer Order Hold Reason Category" },
+  { key: "holdingDate", label: "Holding Date" },
+  { key: "holdRemark", label: "Hold Remark" },
+  { key: "transportMode", label: "Transport Mode" },
+  { key: "conveyedForRegistration", label: "Conveyed For Registration Form" },
+  { key: "orderNo", label: "Order No" },
+  { key: "destination", label: "Destination" },
+  { key: "poNumber", label: "PO Number" },
+]
+
+const defaultVisibility = {
+  timestamp: true,
+  leadId: true,
+  leadSource: true,
+  companyName: true,
+  phoneNumber: true,
+  salespersonName: true,
+  currentStage: false,
+  callingDate: false,
+  itemQty: false,
+  totalQty: false,
+  shippingAddress: false,
+  enquiryReceiverName: false,
+  enquiryAssignToProject: false,
+  gstNumber: false,
+  enquiryDate: false,
+  enquiryState: false,
+  projectName: false,
+  salesType: false,
+  enquiryApproach: false,
+  itemName1: false,
+  itemQty1: false,
+  itemName2: false,
+  itemQty2: false,
+  itemName3: false,
+  itemQty3: false,
+  itemName4: false,
+  itemQty4: false,
+  itemName5: false,
+  itemQty5: false,
+  enquiryStatus: false,
+  customerFeedback: false,
+  sendQuotationNo: false,
+  quotationSharedBy: false,
+  quotationNumber: false,
+  valueWithoutTax: false,
+  valueWithTax: false,
+  quotationUpload: false,
+  quotationRemarks: false,
+  validatorName: false,
+  sendStatus: false,
+  validationRemark: false,
+  faqVideo: false,
+  productVideo: false,
+  offerVideo: false,
+  productCatalog: false,
+  productImage: false,
+  nextCallTime: false,
+  orderStatus: false,
+  reasonStatus: false,
+  reasonRemark: false,
+  holdReason: false,
+  holdingDate: false,
+  holdRemark: false,
+  transportMode: false,
+  conveyedForRegistration: false,
+  orderNo: false,
+  destination: false,
+  poNumber: false,
+}
+
 function EnquiryTracker() {
   const { currentUser, isAdmin } = useContext(AuthContext) // Get user info and admin function
   const [searchParams] = useSearchParams()
@@ -41,70 +163,9 @@ function EnquiryTracker() {
     setCurrentPage(1)
   }, [activeTab, searchTerm, callingDaysFilter, enquiryNoFilter, currentStageFilter])
 
-  const [visibleColumns, setVisibleColumns] = useState({
-    timestamp: true,
-    enquiryNo: true,
-    companyName: true,
-    shippingAddress: true,
-    enquiryStatus: true,
-    customerFeedback: true,
-    currentStage: true,
-    sendQuotationNo: true,
-    quotationSharedBy: true,
-    quotationNumber: true,
-    valueWithoutTax: true,
-    valueWithTax: true,
-    quotationUpload: true,
-    quotationRemarks: true,
-    validatorName: true,
-    sendStatus: true,
-    validationRemark: true,
-    faqVideo: true,
-    productVideo: true,
-    offerVideo: true,
-    productCatalog: true,
-    productImage: true,
-    nextCallDate: true,
-    nextCallTime: true,
-    orderStatus: true,
-    acceptanceVia: true,
-    paymentMode: true,
-    paymentTerms: true,
-    transportMode: true,
-    orderVideo: true,
-    acceptanceFile: true,
-    orderRemark: true,
-    apologyVideo: true,
-    reasonStatus: true,
-    reasonRemark: true,
-    holdReason: true,
-    holdingDate: true,
-    holdRemark: true,
-  })
-  const [visiblePendingColumns, setVisiblePendingColumns] = useState({
-    timestamp: true,
-    leadId: true,
-    enquiryType: false,
-    leadSource: false,
-    companyName: true,
-    phoneNumber: true,
-    shippingAddress: true,
-    receiverName: true,
-    salespersonName: true,
-    callingDate: true,
-    personName: true,
-    lastFollowUpDate: false,
-    lastFollowUpStatus: false,
-    customerSay: false,
-    nextAction: false,
-    noOfFollowUps: false,
-    currentStage: true,
-    groupName: true,
-    itemQty: true,
-  })
+  const [visibleColumns, setVisibleColumns] = useState(defaultVisibility)
+  const [visiblePendingColumns, setVisiblePendingColumns] = useState(defaultVisibility)
   const [showColumnDropdown, setShowColumnDropdown] = useState(false)
-
-
 
   // Helper function to check if a date is today
   const isToday = (dateStr) => {
@@ -117,8 +178,6 @@ function EnquiryTracker() {
       return false
     }
   }
-
-
 
   const formatItemQty = (itemQtyString) => {
     if (!itemQtyString) return ""
@@ -134,7 +193,6 @@ function EnquiryTracker() {
       return itemQtyString // Return original string if parsing fails
     }
   }
-
 
   // Replace the matchesCallingDaysFilter function with this updated version
   const matchesCallingDaysFilter = (dateStr, activeTab) => {
@@ -196,67 +254,74 @@ function EnquiryTracker() {
     setVisiblePendingColumns(newState)
   }
 
-  const columnOptions = [
-    { key: "timestamp", label: "Timestamp" },
-    { key: "enquiryNo", label: "Enquiry No." },
-    { key: "companyName", label: "Company Name" },
-    { key: "shippingAddress", label: "Shipping Address" },
-    { key: "enquiryStatus", label: "Enquiry Status" },
-    { key: "customerFeedback", label: "What Did Customer Say" },
-    { key: "currentStage", label: "Current Stage" },
-    { key: "sendQuotationNo", label: "Send Quotation No." },
-    { key: "quotationSharedBy", label: "Quotation Shared By" },
-    { key: "quotationNumber", label: "Quotation Number" },
-    { key: "valueWithoutTax", label: "Value Without Tax" },
-    { key: "valueWithTax", label: "Value With Tax" },
-    { key: "quotationUpload", label: "Quotation Upload" },
-    { key: "quotationRemarks", label: "Quotation Remarks" },
-    { key: "validatorName", label: "Validator Name" },
-    { key: "sendStatus", label: "Send Status" },
-    { key: "validationRemark", label: "Validation Remark" },
-    { key: "faqVideo", label: "FAQ Video" },
-    { key: "productVideo", label: "Product Video" },
-    { key: "offerVideo", label: "Offer Video" },
-    { key: "productCatalog", label: "Product Catalog" },
-    { key: "productImage", label: "Product Image" },
-    { key: "nextCallDate", label: "Next Call Date" },
-    { key: "nextCallTime", label: "Next Call Time" },
-    { key: "orderStatus", label: "Order Status" },
-    { key: "acceptanceVia", label: "Acceptance Via" },
-    { key: "paymentMode", label: "Payment Mode" },
-    { key: "paymentTerms", label: "Payment Terms" },
-    { key: "orderVideo", label: "Order Video" },
-    { key: "acceptanceFile", label: "Acceptance File" },
-    { key: "orderRemark", label: "Remark" },
-    { key: "apologyVideo", label: "Apology Video" },
-    { key: "reasonStatus", label: "Reason Status" },
-    { key: "reasonRemark", label: "Reason Remark" },
-    { key: "holdReason", label: "Hold Reason" },
-    { key: "holdingDate", label: "Holding Date" },
-    { key: "holdRemark", label: "Hold Remark" },
-  ]
+  const renderRowCells = (tracker, visibleState) => {
+    return columnsConfig.map(opt => {
+      if (!visibleState[opt.key]) return null;
+      if (opt.key === "salespersonName" && !isAdmin()) return null;
 
-  const pendingColumnOptions = [
-    { key: "timestamp", label: "Timestamp" },
-    { key: "leadId", label: "Lead No." },
-    { key: "enquiryType", label: "Enquiry Type" },
-    { key: "leadSource", label: "Lead Source" },
-    { key: "companyName", label: "Company Name" },
-    { key: "phoneNumber", label: "Phone No." },
-    { key: "shippingAddress", label: "Shipping Address" },
-    { key: "receiverName", label: "Lead Receiver Name" },
-    { key: "salespersonName", label: "Assigned To" },
-    { key: "callingDate", label: "Calling Date" },
-    { key: "personName", label: "Person Name" },
-    { key: "lastFollowUpDate", label: "Last Follow Up Date" },
-    { key: "lastFollowUpStatus", label: "Last Follow Up Status" },
-    { key: "customerSay", label: "What Did Customer Say" },
-    { key: "nextAction", label: "Next Action" },
-    { key: "noOfFollowUps", label: "No of Follow Ups" },
-    { key: "currentStage", label: "Current Stage" },
-    { key: "groupName", label: "Group Name" },
-    { key: "itemQty", label: "Item/Qty" },
-  ]
+      const val = tracker[opt.key];
+
+      // Special case for lead ID cell formatting
+      if (opt.key === "leadId") {
+        return (
+          <td key={opt.key} className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+            {val || "—"}
+          </td>
+        );
+      }
+
+      // Custom rendering logic based on key
+      let cellContent = val !== undefined && val !== null ? String(val) : "—";
+
+      if (opt.key === "companyName") {
+        cellContent = (
+          <div className="flex items-center">
+            <BuildingIcon className="h-4 w-4 mr-2 text-slate-400 shrink-0" />
+            <span className="truncate">{val || "—"}</span>
+          </div>
+        );
+      } else if (opt.key === "leadSource" || opt.key === "enquiryStatus") {
+        cellContent = val ? (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800">
+            {val}
+          </span>
+        ) : "—";
+      } else if (opt.key === "shippingAddress") {
+        cellContent = (
+          <div className="max-w-[200px] truncate" title={val}>
+            {val || "—"}
+          </div>
+        );
+      } else if (opt.key === "itemQty") {
+        cellContent = (
+          <div className="min-w-[300px] break-words whitespace-normal" title={formatItemQty(val)}>
+            {formatItemQty(val) || "—"}
+          </div>
+        );
+      } else if (opt.key === "quotationUpload" || opt.key === "acceptanceFile" || opt.key === "apologyVideo") {
+        cellContent = val ? (
+          <a href={val} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+            {opt.key === "apologyVideo" ? "View Video" : "View File"}
+          </a>
+        ) : "—";
+      } else if (opt.key === "customerFeedback" || opt.key === "quotationRemarks" || opt.key === "validationRemark" || opt.key === "reasonRemark" || opt.key === "holdRemark") {
+        cellContent = (
+          <div className="max-w-[200px] truncate" title={val}>
+            {val || "—"}
+          </div>
+        );
+      }
+
+      return (
+        <td key={opt.key} className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+          {cellContent}
+        </td>
+      );
+    });
+  };
+
+  const columnOptions = columnsConfig
+  const pendingColumnOptions = columnsConfig
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -447,6 +512,41 @@ function EnquiryTracker() {
     </div>
   );
 
+  const renderHistoryCard = (tracker, index) => (
+    <div key={tracker.id || index} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 space-y-3">
+      <div className="flex justify-between items-start">
+        <div className="flex-1">
+          <span className="text-xs font-semibold text-gray-500">{tracker.timestamp}</span>
+          <h3 className="font-bold text-gray-900 mt-1">{tracker.companyName}</h3>
+          <p className="text-xs text-blue-600 font-medium">{tracker.enquiryNo || tracker.leadId}</p>
+        </div>
+        <div className="text-right">
+          <span className="block text-xs text-gray-400">Person Name</span>
+          <span className="text-sm font-medium">{tracker.salespersonName}</span>
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
+        <div>
+          <span className="block text-xs text-gray-400">Phone</span>
+          <p className="font-medium">{tracker.phoneNumber}</p>
+        </div>
+        <div>
+          <span className="block text-xs text-gray-400">Current Stage</span>
+          <p className="text-sky-600 font-medium">{tracker.currentStage || "Completed"}</p>
+        </div>
+        <div>
+          <span className="block text-xs text-gray-400">Calling Date</span>
+          <p>{tracker.callingDate || "-"}</p>
+        </div>
+      </div>
+      <div className="pt-2 border-t border-gray-100 flex justify-end">
+        <button onClick={() => { setSelectedTracker(tracker); setShowPopup(true); }} className="w-full flex items-center justify-center px-3 py-2 text-sm border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-md font-medium">
+          View
+        </button>
+      </div>
+    </div>
+  );
+
   const renderPendingRow = (tracker, index) => (
     <tr key={tracker.id || index} className="hover:bg-slate-50 transition-colors group">
       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium sticky left-0 bg-white group-hover:bg-slate-50 z-10 shadow-[1px_0_0_0_#e5e7eb]">
@@ -458,164 +558,8 @@ function EnquiryTracker() {
           </Link>
         </div>
       </td>
-      {visiblePendingColumns.timestamp && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.timestamp}</td>}
-      {visiblePendingColumns.leadId && <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{tracker.leadId}</td>}
-      {visiblePendingColumns.enquiryType && (
-        <td className="px-6 py-4 whitespace-nowrap">
-          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${tracker.enquiryType === 'Lead' ? 'bg-purple-100 text-purple-800' : 'bg-emerald-100 text-emerald-800'}`}>
-            {tracker.enquiryType}
-          </span>
-        </td>
-      )}
-      {visiblePendingColumns.leadSource && (
-        <td className="px-6 py-4 whitespace-nowrap">
-          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${tracker.priority === "High" ? "bg-red-100 text-red-800" : tracker.priority === "Medium" ? "bg-blue-100 text-blue-800" : "bg-slate-100 text-slate-800"}`}>
-            {tracker.leadSource}
-          </span>
-        </td>
-      )}
-      {visiblePendingColumns.companyName && (
-        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-          <div className="flex items-center">
-            <BuildingIcon className="h-4 w-4 mr-2 text-slate-400" />
-            {tracker.companyName}
-          </div>
-        </td>
-      )}
-      {visiblePendingColumns.phoneNumber && <td className="px-4 py-4 text-sm text-gray-500">{tracker.phoneNumber}</td>}
-      {visiblePendingColumns.shippingAddress && (
-        <td className="px-6 py-4 text-sm text-gray-500 max-w-[200px] truncate" title={tracker.shippingAddress}>
-          {tracker.shippingAddress || "—"}
-        </td>
-      )}
-      {visiblePendingColumns.receiverName && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.receiverName}</td>}
-      {visiblePendingColumns.salespersonName && isAdmin() && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.salespersonName}</td>}
-      {visiblePendingColumns.callingDate && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.callingDate}</td>}
-      {visiblePendingColumns.personName && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.assignedTo}</td>}
-      {visiblePendingColumns.lastFollowUpDate && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.lastFollowUpDate || "—"}</td>}
-      {visiblePendingColumns.lastFollowUpStatus && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.lastFollowUpStatus || "—"}</td>}
-      {visiblePendingColumns.customerSay && <td className="px-6 py-4 text-sm text-gray-500 max-w-[200px] truncate" title={tracker.customerSay}>{tracker.customerSay || "—"}</td>}
-      {visiblePendingColumns.nextAction && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.nextAction || "—"}</td>}
-      {visiblePendingColumns.noOfFollowUps && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.noOfFollowUps || "0"}</td>}
-      {visiblePendingColumns.currentStage && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.currentStage}</td>}
-      {visiblePendingColumns.groupName && (
-        <td className="px-6 py-4 whitespace-nowrap">
-          {tracker.groupName ? (
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
-              {tracker.groupName}
-            </span>
-          ) : (
-            <span className="text-gray-300 text-xs">—</span>
-          )}
-        </td>
-      )}
-      {visiblePendingColumns.itemQty && (
-        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-          <div className="min-w-[300px] break-words whitespace-normal" title={formatItemQty(tracker.itemQty)}>
-            {formatItemQty(tracker.itemQty)}
-          </div>
-        </td>
-      )}
+      {renderRowCells(tracker, visiblePendingColumns)}
     </tr>
-  );
-
-  const renderDirectEnquiryCard = (tracker, index) => (
-    <div key={tracker.id || index} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 space-y-3">
-      <div className="flex justify-between items-start">
-        <div className="flex-1">
-          <span className="text-xs font-semibold text-gray-500">{tracker.timestamp}</span>
-          <h3 className="font-bold text-gray-900 mt-1">{tracker.companyName}</h3>
-          <p className="text-xs text-blue-600 font-medium">{tracker.leadId}</p>
-        </div>
-        <div className="text-right">
-          <p className="text-sm font-medium text-gray-700">{tracker.phoneNumber}</p>
-        </div>
-      </div>
-      <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
-        <div>
-          <span className="block text-xs text-gray-400">Source</span>
-          <span>{tracker.leadSource}</span>
-        </div>
-        <div>
-          <span className="block text-xs text-gray-400">Stage</span>
-          <span className="text-sky-600">{tracker.currentStage}</span>
-        </div>
-        <div className="col-span-2">
-          <span className="block text-xs text-gray-400">Location</span>
-          <span>{tracker.location}</span>
-        </div>
-      </div>
-      <div className="pt-2 border-t border-gray-100 flex justify-end">
-        <Link to={`/enquiry-tracker/new?leadId=${tracker.leadId}`} className="w-full">
-          <button className="flex items-center justify-center w-full px-3 py-2 text-sm border border-sky-200 text-sky-600 hover:bg-sky-50 rounded-md font-medium">
-            Process <ArrowRightIcon className="ml-1 h-3 w-3" />
-          </button>
-        </Link>
-      </div>
-    </div>
-  );
-
-  const renderDirectEnquiryRow = (tracker, index) => (
-    <tr key={tracker.id || index} className="hover:bg-slate-50">
-      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-        <div className="flex space-x-2">
-          <Link to={`/enquiry-tracker/new?leadId=${tracker.leadId}`}>
-            <button className="px-3 py-1 text-xs border border-sky-200 text-sky-600 hover:bg-sky-50 rounded-md">
-              Process <ArrowRightIcon className="ml-1 h-3 w-3 inline" />
-            </button>
-          </Link>
-          <button onClick={() => { setSelectedTracker(tracker); setShowPopup(true); }} className="px-3 py-1 text-xs border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-md">
-            View
-          </button>
-        </div>
-      </td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.timestamp}</td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{tracker.leadId}</td>
-      <td className="px-6 py-4 whitespace-nowrap">
-        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${tracker.priority === "High" ? "bg-red-100 text-red-800" : tracker.priority === "Medium" ? "bg-blue-100 text-blue-800" : "bg-slate-100 text-slate-800"}`}>
-          {tracker.leadSource}
-        </span>
-      </td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.companyName}</td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.currentStage}</td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.callingDate1}</td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.phoneNumber}</td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.location}</td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-        <div className="min-w-[300px] break-words whitespace-normal" title={formatItemQty(tracker.itemQty)}>
-          {formatItemQty(tracker.itemQty)}
-        </div>
-      </td>
-    </tr>
-  );
-
-  const renderHistoryCard = (tracker, index) => (
-    <div key={tracker.id || index} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 space-y-3">
-      <div className="flex justify-between items-start">
-        <div>
-          <span className="text-xs font-semibold text-gray-500">{tracker.timestamp}</span>
-          <h3 className="font-bold text-gray-900 mt-1">{tracker.enquiryNo}</h3>
-          <p className="text-sm font-medium text-gray-700">{tracker.companyName}</p>
-        </div>
-        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-800`}>
-          {tracker.enquiryStatus}
-        </span>
-      </div>
-      <div>
-        <span className="block text-xs text-gray-400">Customer Feedback</span>
-        <p className="text-sm text-gray-600 line-clamp-2">{tracker.customerFeedback}</p>
-      </div>
-      <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
-        <div>
-          <span className="block text-xs text-gray-400">Current Stage</span>
-          <p>{tracker.currentStage}</p>
-        </div>
-        <div>
-          <span className="block text-xs text-gray-400">Next Call</span>
-          <p>{tracker.nextCallDate || "-"}</p>
-        </div>
-      </div>
-    </div>
   );
 
   const renderHistoryRow = (tracker, index) => (
@@ -625,65 +569,7 @@ function EnquiryTracker() {
           View
         </button>
       </td>
-      {visibleColumns.timestamp && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.timestamp}</td>}
-      {visibleColumns.enquiryNo && <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{tracker.enquiryNo}</td>}
-      {visibleColumns.companyName && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.companyName}</td>}
-      {visibleColumns.shippingAddress && (
-        <td className="px-6 py-4 text-sm text-gray-500 max-w-[200px] truncate" title={tracker.shippingAddress}>
-          {tracker.shippingAddress || "—"}
-        </td>
-      )}
-      {visibleColumns.enquiryStatus && (
-        <td className="px-6 py-4 whitespace-nowrap">
-          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${tracker.priority === "High" ? "bg-red-100 text-red-800" : tracker.priority === "Medium" ? "bg-blue-100 text-blue-800" : "bg-slate-100 text-slate-800"}`}>
-            {tracker.enquiryStatus}
-          </span>
-        </td>
-      )}
-      {visibleColumns.customerFeedback && <td className="px-6 py-4 text-sm text-gray-500 max-w-[200px] truncate" title={tracker.customerFeedback}>{tracker.customerFeedback}</td>}
-      {visibleColumns.currentStage && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.currentStage}</td>}
-      {visibleColumns.sendQuotationNo && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.sendQuotationNo}</td>}
-      {visibleColumns.quotationSharedBy && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.quotationSharedBy}</td>}
-      {visibleColumns.quotationNumber && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.quotationNumber}</td>}
-      {visibleColumns.valueWithoutTax && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.valueWithoutTax}</td>}
-      {visibleColumns.valueWithTax && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.valueWithTax}</td>}
-      {visibleColumns.quotationUpload && (
-        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-          {tracker.quotationUpload && <a href={tracker.quotationUpload} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">View File</a>}
-        </td>
-      )}
-      {visibleColumns.quotationRemarks && <td className="px-6 py-4 text-sm text-gray-500 max-w-[200px] truncate" title={tracker.quotationRemarks}>{tracker.quotationRemarks}</td>}
-      {visibleColumns.validatorName && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.validatorName}</td>}
-      {visibleColumns.sendStatus && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.sendStatus}</td>}
-      {visibleColumns.validationRemark && <td className="px-6 py-4 text-sm text-gray-500 max-w-[200px] truncate" title={tracker.validationRemark}>{tracker.validationRemark}</td>}
-      {visibleColumns.faqVideo && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.faqVideo}</td>}
-      {visibleColumns.productVideo && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.productVideo}</td>}
-      {visibleColumns.offerVideo && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.offerVideo}</td>}
-      {visibleColumns.productCatalog && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.productCatalog}</td>}
-      {visibleColumns.productImage && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.productImage}</td>}
-      {visibleColumns.nextCallDate && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.nextCallDate}</td>}
-      {visibleColumns.nextCallTime && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.nextCallTime}</td>}
-      {visibleColumns.orderStatus && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.orderStatus}</td>}
-      {visibleColumns.acceptanceVia && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.acceptanceVia}</td>}
-      {visibleColumns.paymentMode && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.paymentMode}</td>}
-      {visibleColumns.paymentTerms && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.paymentTerms}</td>}
-      {visibleColumns.orderVideo && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.orderVideo}</td>}
-      {visibleColumns.acceptanceFile && (
-        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-          {tracker.acceptanceFile && <a href={tracker.acceptanceFile} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">View File</a>}
-        </td>
-      )}
-      {visibleColumns.orderRemark && <td className="px-6 py-4 text-sm text-gray-500 max-w-[200px] truncate" title={tracker.orderRemark}>{tracker.orderRemark}</td>}
-      {visibleColumns.apologyVideo && (
-        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-          {tracker.apologyVideo && <a href={tracker.apologyVideo} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">View Video</a>}
-        </td>
-      )}
-      {visibleColumns.reasonStatus && <td className="px-6 py-4 text-sm text-gray-500 max-w-[200px] truncate" title={tracker.reasonStatus}>{tracker.reasonStatus}</td>}
-      {visibleColumns.reasonRemark && <td className="px-6 py-4 text-sm text-gray-500 max-w-[200px] truncate" title={tracker.reasonRemark}>{tracker.reasonRemark}</td>}
-      {visibleColumns.holdReason && <td className="px-6 py-4 text-sm text-gray-500 max-w-[200px] truncate" title={tracker.holdReason}>{tracker.holdReason}</td>}
-      {visibleColumns.holdingDate && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tracker.holdingDate}</td>}
-      {visibleColumns.holdRemark && <td className="px-6 py-4 text-sm text-gray-500 max-w-[200px] truncate" title={tracker.holdRemark}>{tracker.holdRemark}</td>}
+      {renderRowCells(tracker, visibleColumns)}
     </tr>
   );
 
@@ -692,7 +578,7 @@ function EnquiryTracker() {
       const baseHeaders = [
         { label: "Actions", className: "sticky left-0 bg-gray-50 z-30 shadow-[1px_0_0_0_#e5e7eb]" }
       ];
-      pendingColumnOptions.forEach(opt => {
+      columnsConfig.forEach(opt => {
         if (visiblePendingColumns[opt.key]) {
           if (opt.key === "salespersonName") {
             if (isAdmin()) baseHeaders.push(opt.label);
@@ -703,7 +589,14 @@ function EnquiryTracker() {
       });
       return baseHeaders;
     }
-    if (activeTab === "directEnquiry") return directEnquiryHeaders;
+
+    const historyHeaders = [
+      "Actions",
+      ...columnsConfig
+        .filter(opt => visibleColumns[opt.key])
+        .filter(opt => opt.key !== "salespersonName" || isAdmin())
+        .map(opt => opt.label)
+    ];
     return historyHeaders;
   };
 
