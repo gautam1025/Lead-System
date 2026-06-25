@@ -10,7 +10,7 @@ function NewCallTracker() {
   const [searchParams] = useSearchParams()
   const leadId = searchParams.get("leadId")
   const leadNo = searchParams.get("leadNo")
-  const { showNotification } = useContext(AuthContext)
+  const { showNotification, currentUser, userType, isAdmin } = useContext(AuthContext)
   const [customerFeedbackOptions, setCustomerFeedbackOptions] = useState([])
 
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -26,47 +26,101 @@ function NewCallTracker() {
   })
 
   const [leadStatus, setLeadStatus] = useState("")
+  const [leadDetails, setLeadDetails] = useState(null)
 
-  // New state for dropdown options
+  // New state for form fields
+  const [leadSource, setLeadSource] = useState("")
+  const [scName, setScName] = useState("")
+  const [companyName, setCompanyName] = useState("")
+  const [phoneNumber, setPhoneNumber] = useState("")
+  const [salesPersonName, setSalesPersonName] = useState("")
+  const [location, setLocation] = useState("")
+  const [emailAddress, setEmailAddress] = useState("")
+  const [shippingAddress, setShippingAddress] = useState("")
+  const [enquiryReceiverName, setEnquiryReceiverName] = useState("")
+  const [enquiryAssignToProject, setEnquiryAssignToProject] = useState("")
+  const [gstNumber, setGstNumber] = useState("")
+  const [enquiryDate, setEnquiryDate] = useState("")
+  const [enquiryState, setEnquiryState] = useState("")
+  const [projectName, setProjectName] = useState("")
+  const [salesType, setSalesType] = useState("")
+  const [enquiryApproach, setEnquiryApproach] = useState("")
+
+  // Option lists states
+  const [leadSources, setLeadSources] = useState([])
+  const [scMasterData, setScMasterData] = useState([])
   const [enquiryStates, setEnquiryStates] = useState([])
   const [salesTypes, setSalesTypes] = useState([])
   const [productCategories, setProductCategories] = useState([]) // New state for product categories
   const [nobOptions, setNobOptions] = useState([])
   const [enquiryApproachOptions, setEnquiryApproachOptions] = useState([])
+  const [receiverOptions, setReceiverOptions] = useState([])
+  const [assignToProjectOptions, setAssignToProjectOptions] = useState([])
+  const [companyOptions, setCompanyOptions] = useState([])
+  const [companyDetailsMap, setCompanyDetailsMap] = useState({})
+  const [isCompanyAutoFilled, setIsCompanyAutoFilled] = useState(false)
 
-  // Function to fetch dropdown data from DROPDOWNSHEET
-  // Function to fetch dropdown data from DROPDOWNSHEET
-  // Function to fetch dropdown data from DROPDOWNSHEET
+  // Fetch dropdown data
   const fetchDropdownData = async () => {
     try {
-      const data = await mockApi.fetchDropdowns()
+      const data = await mockApi.fetchEnquiryDropdowns()
+      const scData = await mockApi.fetchScMaster()
 
-      if (data) {
-        setEnquiryStates(data.states || [])
-        // Using some default mappings for other dropdowns as they might not be in the initial simplified mockApi response
-        // In a real scenario, mockApi.fetchDropdowns should return all these.
-        setSalesTypes(["NBD", "CRR", "NBD_CRR"])
-        setProductCategories(["Product 1", "Product 2", "Product 3"])
-        setNobOptions(data.nobs || [])
-        setEnquiryApproachOptions(["Approach 1", "Approach 2", "Approach 3"])
-        setCustomerFeedbackOptions(["Interested", "Not Interested", "Asked for Quotation", "Callback Later"])
-      }
+      const defaultSources = data?.sources || []
+      const dynamicSources = scData ? scData.map(s => s.sourceName).filter(Boolean) : []
+      setLeadSources(Array.from(new Set([...defaultSources, ...dynamicSources])))
+      setScMasterData(scData || [])
+      setEnquiryStates(data.states || [])
+      setSalesTypes(data.salesTypes || [])
+      setProductCategories(data.productCategories || [])
+      setNobOptions(data.nobOptions || [])
+      setEnquiryApproachOptions(data.approachOptions || [])
+      setReceiverOptions(data.receivers || [])
+      setAssignToProjectOptions(data.assignToProjects || [])
+      setCustomerFeedbackOptions(["Interested", "Not Interested", "Asked for Quotation", "Callback Later"])
     } catch (error) {
       console.error("Error fetching dropdown values:", error)
-      // Fallback values
+      setLeadSources(["Website", "Other"])
       setEnquiryStates(["Maharashtra", "Gujarat", "Karnataka", "Tamil Nadu", "Delhi"])
       setSalesTypes(["NBD", "CRR", "NBD_CRR"])
       setProductCategories(["Product 1", "Product 2", "Product 3"])
       setNobOptions(["NOB 1", "NOB 2", "NOB 3"])
-      setEnquiryApproachOptions(["Approach 1", "Approach 2", "Approach 3"]) // Fallback for enquiry approach
+      setEnquiryApproachOptions(["Approach 1", "Approach 2", "Approach 3"])
+      setCustomerFeedbackOptions(["Interested", "Not Interested", "Asked for Quotation", "Callback Later"])
+    }
+  }
+
+  // Fetch company options
+  const fetchCompanyData = async () => {
+    try {
+      const data = await mockApi.fetchQuotationDropdowns()
+      if (data && data.companies) {
+        const companies = Object.keys(data.companies)
+        const detailsMap = {}
+        companies.forEach(companyName => {
+          const compData = data.companies[companyName]
+          detailsMap[companyName] = {
+            phoneNumber: compData.contactNo || "",
+            salesPerson: compData.contactName || "",
+            gstNumber: compData.gstin || "",
+            billingAddress: compData.address || "",
+            shippingAddress: compData.address || "",
+            enquiryReceiverName: "",
+            enquiryAssignToProject: ""
+          }
+        })
+        setCompanyOptions(companies)
+        setCompanyDetailsMap(detailsMap)
+      }
+    } catch (error) {
+      console.error("Error fetching company data:", error)
     }
   }
 
   useEffect(() => {
-    // Fetch dropdown data when component mounts
     fetchDropdownData()
+    fetchCompanyData()
 
-    // Prepopulate lead number if available
     if (leadNo) {
       setFormData((prevData) => ({
         ...prevData,
@@ -75,12 +129,64 @@ function NewCallTracker() {
     }
   }, [leadNo])
 
+  // Fetch and prefill lead details
+  useEffect(() => {
+    const loadLeadDetails = async () => {
+      if (leadNo && currentUser) {
+        try {
+          const leads = await mockApi.fetchUserData(currentUser.username, currentUser.userType)
+          const matchedLead = leads.find(l => l.leadNumber === leadNo)
+          if (matchedLead) {
+            setLeadDetails(matchedLead)
+            setLeadSource(matchedLead.source || "")
+            setScName(matchedLead.scName || "")
+            setCompanyName(matchedLead.company || "")
+            setPhoneNumber(matchedLead.phoneNumber || "")
+            setSalesPersonName(matchedLead.personName1 || matchedLead.assignedUser || "")
+            setLocation(matchedLead.location || "")
+            setEmailAddress(matchedLead.email || "")
+            setShippingAddress(matchedLead.address || matchedLead.shippingAddress || "")
+            setEnquiryReceiverName(matchedLead.receiver || "")
+            setGstNumber(matchedLead.gst || "")
+            setEnquiryState(matchedLead.state || "")
+            setProjectName(matchedLead.natureOfBusiness || matchedLead.projectName || "")
+            setSalesType(matchedLead.salesType || "")
+            setIsCompanyAutoFilled(true)
+          }
+        } catch (error) {
+          console.error("Error loading lead details:", error)
+        }
+      }
+    }
+    loadLeadDetails()
+  }, [leadNo, currentUser])
+
   const handleChange = (e) => {
     const { id, value } = e.target
     setFormData((prevData) => ({
       ...prevData,
       [id]: value,
     }))
+  }
+
+  const handleCompanyChange = (companyNameValue) => {
+    setCompanyName(companyNameValue)
+    if (companyNameValue && companyDetailsMap[companyNameValue]) {
+      const details = companyDetailsMap[companyNameValue]
+      setPhoneNumber(details.phoneNumber || "")
+      setSalesPersonName(details.salesPerson || "")
+      setLocation(details.billingAddress || "")
+      setGstNumber(details.gstNumber || "")
+      setShippingAddress(details.shippingAddress || "")
+    } else {
+      setIsCompanyAutoFilled(false)
+    }
+  }
+
+  const handleSourceChange = (sourceValue) => {
+    setLeadSource(sourceValue)
+    const matchedSc = scMasterData.find(sc => sc.sourceName.toLowerCase() === sourceValue.toLowerCase())
+    setScName(matchedSc ? matchedSc.personName : "")
   }
 
   const calculateTotalQuantity = () => {
@@ -102,7 +208,7 @@ function NewCallTracker() {
       const rowData = [
         formattedDate, // A: Current date
         formData.leadNo, // B: Lead Number
-        document.getElementById("customerFeedback").value, // C: Customer feedback
+        formData.customerFeedback, // C: Customer feedback
         leadStatus, // D: Hot/Cold/Warm status
         enquiryStatus, // E: Enquiry Status
       ]
@@ -114,19 +220,19 @@ function NewCallTracker() {
 
         // Then add columns V, W, X
         rowData.push(
-          document.getElementById("nextAction").value, // V: Next action
-          document.getElementById("nextCallDate").value, // W: Next call date
-          document.getElementById("nextCallTime").value, // X: Next call time
+          formData.nextAction, // V: Next action
+          formData.nextCallDate, // W: Next call date
+          formData.nextCallTime, // X: Next call time
         )
       }
       else if (enquiryStatus === "yes") {
         // Add columns F-K
         rowData.push(
-          document.getElementById("enquiryDate").value, // F: Enquiry Received Date
-          document.getElementById("enquiryState").value, // G: Enquiry for State
-          document.getElementById("projectName").value, // H: Project Name (NOB)
-          document.getElementById("salesType").value, // I: Sales Type
-          formData.enquiryApproach, // J: Enquiry Approach
+          enquiryDate, // F: Enquiry Received Date
+          enquiryState, // G: Enquiry for State
+          projectName, // H: Project Name (NOB)
+          salesType, // I: Sales Type
+          enquiryApproach, // J: Enquiry Approach
           "", // K: Project Value (empty)
         )
 
@@ -179,8 +285,24 @@ function NewCallTracker() {
         ...formData,
         leadStatus,
         enquiryStatus,
+        leadSource,
+        scName,
+        companyName,
+        phoneNumber,
+        salesPersonName,
+        location,
+        emailAddress,
+        shippingAddress,
+        enquiryReceiverName,
+        enquiryAssignToProject,
+        gstNumber,
+        enquiryDate,
+        enquiryState,
+        projectName,
+        salesType,
+        enquiryApproach,
         items,
-        rowData // Keeping raw rowData for structure if needed by mockApi later, or better yet pass structured data
+        rowData
       })
 
       if (result.success) {
@@ -423,13 +545,188 @@ function NewCallTracker() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
+                    <label htmlFor="leadSource" className="block text-sm font-medium text-gray-700">
+                      Lead Source
+                    </label>
+                    <select
+                      id="leadSource"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white"
+                      value={leadSource}
+                      onChange={(e) => handleSourceChange(e.target.value)}
+                      required
+                    >
+                      <option value="">Select source</option>
+                      {leadSources.map((source, index) => (
+                        <option key={index} value={source}>
+                          {source}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label htmlFor="scName" className="block text-sm font-medium text-gray-700">
+                      SC Name
+                    </label>
+                    <input
+                      id="scName"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500"
+                      placeholder="Auto-fills from Lead Source"
+                      value={scName}
+                      onChange={(e) => setScName(e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label htmlFor="companyName" className="block text-sm font-medium text-gray-700">
+                      Company Name
+                    </label>
+                    <input
+                      list="companyOptions"
+                      id="companyName"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500"
+                      value={companyName}
+                      onChange={(e) => handleCompanyChange(e.target.value)}
+                      required
+                    />
+                    <datalist id="companyOptions">
+                      {companyOptions.map((company, index) => (
+                        <option key={index} value={company} />
+                      ))}
+                    </datalist>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700">
+                      Phone Number
+                    </label>
+                    <input
+                      id="phoneNumber"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500"
+                      placeholder="Enter phone number"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label htmlFor="salesPersonName" className="block text-sm font-medium text-gray-700">
+                      Person Name
+                    </label>
+                    <input
+                      id="salesPersonName"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500"
+                      placeholder="Enter person name"
+                      value={salesPersonName}
+                      onChange={(e) => setSalesPersonName(e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label htmlFor="location" className="block text-sm font-medium text-gray-700">
+                      Billing Address
+                    </label>
+                    <input
+                      id="location"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500"
+                      placeholder="Enter billing address"
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label htmlFor="emailAddress" className="block text-sm font-medium text-gray-700">
+                      Email Address
+                    </label>
+                    <input
+                      id="emailAddress"
+                      type="email"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500"
+                      placeholder="Enter email address"
+                      value={emailAddress}
+                      onChange={(e) => setEmailAddress(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label htmlFor="shippingAddress" className="block text-sm font-medium text-gray-700">
+                      Shipping Address
+                    </label>
+                    <input
+                      id="shippingAddress"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500"
+                      placeholder="Enter shipping address"
+                      value={shippingAddress}
+                      onChange={(e) => setShippingAddress(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label htmlFor="enquiryReceiverName" className="block text-sm font-medium text-gray-700">
+                      Enquiry Receiver Name
+                    </label>
+                    <select
+                      id="enquiryReceiverName"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white"
+                      value={enquiryReceiverName}
+                      onChange={(e) => setEnquiryReceiverName(e.target.value)}
+                    >
+                      <option value="">Select receiver</option>
+                      {receiverOptions.map((receiver, index) => (
+                        <option key={index} value={receiver}>
+                          {receiver}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label htmlFor="enquiryAssignToProject" className="block text-sm font-medium text-gray-700">
+                      Enquiry Assign to Project
+                    </label>
+                    <select
+                      id="enquiryAssignToProject"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white"
+                      value={enquiryAssignToProject}
+                      onChange={(e) => setEnquiryAssignToProject(e.target.value)}
+                    >
+                      <option value="">Select project</option>
+                      {assignToProjectOptions.map((project, index) => (
+                        <option key={index} value={project}>
+                          {project}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label htmlFor="gstNumber" className="block text-sm font-medium text-gray-700">
+                      GST Number
+                    </label>
+                    <input
+                      id="gstNumber"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500"
+                      placeholder="Enter GST number"
+                      value={gstNumber}
+                      onChange={(e) => setGstNumber(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
                     <label htmlFor="enquiryDate" className="block text-sm font-medium text-gray-700">
                       Enquiry Received Date
                     </label>
                     <input
                       id="enquiryDate"
                       type="date"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white"
+                      value={enquiryDate}
+                      onChange={(e) => setEnquiryDate(e.target.value)}
                       required
                     />
                   </div>
@@ -440,7 +737,9 @@ function NewCallTracker() {
                     </label>
                     <select
                       id="enquiryState"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white"
+                      value={enquiryState}
+                      onChange={(e) => setEnquiryState(e.target.value)}
                       required
                     >
                       <option value="">Select state</option>
@@ -458,7 +757,9 @@ function NewCallTracker() {
                     </label>
                     <select
                       id="projectName"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white"
+                      value={projectName}
+                      onChange={(e) => setProjectName(e.target.value)}
                       required
                     >
                       <option value="">Select NOB</option>
@@ -476,7 +777,9 @@ function NewCallTracker() {
                     </label>
                     <select
                       id="salesType"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white"
+                      value={salesType}
+                      onChange={(e) => setSalesType(e.target.value)}
                       required
                     >
                       <option value="">Select type</option>
@@ -494,9 +797,9 @@ function NewCallTracker() {
                     </label>
                     <select
                       id="enquiryApproach"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500"
-                      value={formData.enquiryApproach}
-                      onChange={handleChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white"
+                      value={enquiryApproach}
+                      onChange={(e) => setEnquiryApproach(e.target.value)}
                       required
                     >
                       <option value="">Select approach</option>
@@ -511,12 +814,12 @@ function NewCallTracker() {
                 </div>
 
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h4 className="font-medium">Items</h4>
+                  <div className="flex items-center justify-between pt-4 border-t">
+                    <h4 className="font-medium text-gray-950">Items</h4>
                     <button
                       type="button"
                       onClick={addItem}
-                      className="px-3 py-1 text-xs border border-sky-200 text-sky-600 hover:bg-sky-50 rounded-md"
+                      className="px-3 py-1 text-xs border border-sky-200 text-sky-600 hover:bg-sky-50 rounded-md transition-colors"
                       disabled={items.length >= 300}
                     >
                       + Add Item ({items.length}/300)
@@ -527,12 +830,12 @@ function NewCallTracker() {
                     <div key={item.id} className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
                       <div className="md:col-span-5 space-y-2">
                         <label htmlFor={`itemName-${item.id}`} className="block text-sm font-medium text-gray-700">
-                          Item Name 1
+                          Item Name
                         </label>
                         <input
                           list={`item-options-${item.id}`}
                           id={`itemName-${item.id}`}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white"
                           value={item.name}
                           onChange={(e) => updateItem(item.id, "name", e.target.value)}
                           required
@@ -545,14 +848,13 @@ function NewCallTracker() {
                         </datalist>
                       </div>
 
-
                       <div className="md:col-span-5 space-y-2">
                         <label htmlFor={`quantity-${item.id}`} className="block text-sm font-medium text-gray-700">
                           Quantity
                         </label>
                         <input
                           id={`quantity-${item.id}`}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white"
                           placeholder="Enter quantity"
                           value={item.quantity}
                           onChange={(e) => updateItem(item.id, "quantity", e.target.value)}
@@ -565,12 +867,12 @@ function NewCallTracker() {
                           type="button"
                           onClick={() => removeItem(item.id)}
                           disabled={items.length === 1}
-                          className="p-2 text-slate-500 hover:text-slate-700 disabled:opacity-50"
+                          className="p-2 text-slate-500 hover:text-red-600 disabled:opacity-50 transition-colors"
                         >
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
-                            width="16"
-                            height="16"
+                            width="18"
+                            height="18"
                             viewBox="0 0 24 24"
                             fill="none"
                             stroke="currentColor"

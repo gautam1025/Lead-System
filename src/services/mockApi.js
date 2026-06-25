@@ -328,6 +328,7 @@ export const mockApi = {
         const newLeadNumber = await mockApi.generateLeadNumber();
         const newLead = {
             date: leadData.date || new Date().toLocaleDateString('en-GB'),
+            timestamp: leadData.timestamp || (new Date().toLocaleDateString('en-GB') + " " + new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })),
             leadNumber: newLeadNumber,
             company: leadData.companyName,
             source: leadData.source,
@@ -403,6 +404,7 @@ export const mockApi = {
 
             const newLead = {
                 date: today,
+                timestamp: today + " " + new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
                 leadNumber: newLeadNumber,
                 company: leadData.companyName || "",
                 source: leadData.source || "",
@@ -453,7 +455,7 @@ export const mockApi = {
             const shouldInclude = isAdminFunc() || assignedUser === username;
             return shouldInclude && row.hasPendingFollowUp;
         }).map(row => ({
-            timestamp: row.date,
+            timestamp: row.timestamp || row.date,
             id: row.leadNumber,
             leadId: row.leadNumber,
             enquiryType: "Lead",
@@ -503,7 +505,7 @@ export const mockApi = {
             const lead = db.fmsData.find(l => l.leadNumber === lNo);
             const dirEnq = db.enquiryToOrder.find(e => e.leadNumber === lNo);
             const historyObj = {
-                timestamp: row.date,
+                timestamp: row.timestamp || row.date,
                 leadNo: lNo,
                 companyName: row.companyName || row.company || (lead ? lead.company : (dirEnq ? dirEnq.company : "Unknown")),
                 personName: row.personName || (lead ? (lead.scName || lead.assignedUser) : (dirEnq ? dirEnq.salespersonName : "John Doe")),
@@ -559,6 +561,7 @@ export const mockApi = {
             db.followUpHistory.push({
                 ...data,
                 date: new Date().toLocaleDateString('en-GB'),
+                timestamp: new Date().toLocaleDateString('en-GB') + " " + new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
                 companyName: lead.company,
                 assignedTo: lead.assignedUser,
                 callingCount: (parseInt(lead.noOfFollowUps) || 0) + 1,
@@ -577,6 +580,24 @@ export const mockApi = {
             if (data.enquiryStatus === "yes") {
                 db.fmsData[leadIndex].hasPendingFollowUp = false;
                 db.fmsData[leadIndex].hasPendingCallTracker = true; // Moves it to Enquiry Tracker pending
+                
+                // Update lead properties with any user changes from the form
+                if (data.leadSource !== undefined) db.fmsData[leadIndex].source = data.leadSource;
+                if (data.scName !== undefined) db.fmsData[leadIndex].scName = data.scName;
+                if (data.companyName !== undefined) db.fmsData[leadIndex].company = data.companyName;
+                if (data.phoneNumber !== undefined) db.fmsData[leadIndex].phoneNumber = data.phoneNumber;
+                if (data.salesPersonName !== undefined) {
+                    db.fmsData[leadIndex].personName1 = data.salesPersonName;
+                }
+                if (data.location !== undefined) db.fmsData[leadIndex].location = data.location;
+                if (data.emailAddress !== undefined) db.fmsData[leadIndex].email = data.emailAddress;
+                if (data.shippingAddress !== undefined) db.fmsData[leadIndex].shippingAddress = data.shippingAddress;
+                if (data.enquiryReceiverName !== undefined) db.fmsData[leadIndex].receiver = data.enquiryReceiverName;
+                if (data.enquiryAssignToProject !== undefined) db.fmsData[leadIndex].assignedUser = data.enquiryAssignToProject;
+                if (data.gstNumber !== undefined) db.fmsData[leadIndex].gst = data.gstNumber;
+                if (data.enquiryState !== undefined) db.fmsData[leadIndex].state = data.enquiryState;
+                if (data.projectName !== undefined) db.fmsData[leadIndex].natureOfBusiness = data.projectName;
+                if (data.salesType !== undefined) db.fmsData[leadIndex].salesType = data.salesType;
             } else if (data.enquiryStatus === "expected") {
                 db.fmsData[leadIndex].hasPendingFollowUp = true; // Stay in Follow Up pending
                 db.fmsData[leadIndex].followUpDate = data.nextCallDate;
@@ -606,7 +627,7 @@ export const mockApi = {
             return shouldInclude && row.hasPendingCallTracker;
         }).map((row, index) => ({
             id: index + 1,
-            timestamp: row.date,
+            timestamp: row.timestamp || row.date,
             leadId: row.leadNumber,
             receiverName: row.receiver || "Receiver",
             leadSource: row.source,
@@ -661,7 +682,7 @@ export const mockApi = {
             const shippingAddress = row.shippingAddress || dirEnq.shippingAddress || fmsLead.shippingAddress || fmsLead.address || "";
             return {
                 id: index + 1,
-                timestamp: row.date,
+                timestamp: row.timestamp || row.date,
                 enquiryNo: row.leadNo || row.enquiryNo,
                 companyName: row.companyName || row.company || "Unknown",
                 enquiryStatus: row.enquiryStatus || "Active",
@@ -685,7 +706,7 @@ export const mockApi = {
             return row.status === "Pending";
         }).map((row, index) => ({
             id: index + 1,
-            timestamp: row.date,
+            timestamp: row.timestamp || row.date,
             leadId: row.leadNumber,
             receiverName: row.receiverName || "",
             leadSource: row.leadSource || "Direct",
@@ -783,6 +804,7 @@ export const mockApi = {
         const shippingAddress = dirEnq.shippingAddress || fmsLead.shippingAddress || fmsLead.address || "";
         db.enquiryTracker.push({
             date: new Date().toLocaleDateString('en-GB'),
+            timestamp: new Date().toLocaleDateString('en-GB') + " " + new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
             enquiryNo: newEnquiryNo,
             leadNo: leadId,
             companyName: companyName,

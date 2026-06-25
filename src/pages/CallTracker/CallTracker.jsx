@@ -33,12 +33,12 @@ function CallTracker() {
     personName: true,
     phoneNumber: true,
     nextCallDate: true,
-    nextAction: true,
     customerSay: true,
+    noOfFollowUps: true,
+    nextAction: false,
     timestamp: false,
     callingCount: false,
     enquiryCallingCount: false,
-    noOfFollowUps: false,
     lastFollowUpStatus: false,
     enquiryStatus: false,
     receivedDate: false,
@@ -67,17 +67,17 @@ function CallTracker() {
     enquiryType: false,
     leadSource: false,
     companyName: true,
-    phoneNumber: true,
-    address: true,
-    receiverName: true,
-    assignedTo: true,
-    nextCallDate: true,
     personName: true,
-    lastFollowUpDate: false,
-    lastFollowUpStatus: false,
+    phoneNumber: true,
+    lastFollowUpDate: true,
+    nextCallDate: true,
     customerSay: true,
-    nextAction: true,
-    noOfFollowUps: false,
+    noOfFollowUps: true,
+    address: false,
+    receiverName: false,
+    assignedTo: false,
+    lastFollowUpStatus: false,
+    nextAction: false,
     location: false,
     enquiryStatus: false,
     email: false,
@@ -578,12 +578,12 @@ function CallTracker() {
     { key: "personName", label: "Person Name" },
     { key: "phoneNumber", label: "Phone Number" },
     { key: "nextCallDate", label: "Next Follow Up Date" },
+    { key: "customerSay", label: "What Did Customer Say" },
+    { key: "noOfFollowUps", label: "No. of FollowUps" },
     { key: "nextAction", label: "Next Action" },
-    { key: "customerSay", label: "Last Follow Up Remarks" },
     { key: "timestamp", label: "Timestamp" },
     { key: "callingCount", label: "Calling Count" },
     { key: "enquiryCallingCount", label: "Enquiry Calling Count" },
-    { key: "noOfFollowUps", label: "No. of FollowUps" },
     { key: "lastFollowUpStatus", label: "Last FollowUp Status" },
     { key: "enquiryStatus", label: "Enquiry Status" },
     { key: "receivedDate", label: "Received Date" },
@@ -642,17 +642,17 @@ function CallTracker() {
     { key: "enquiryType", label: "Enquiry Type" },
     { key: "leadSource", label: "Lead Source" },
     { key: "companyName", label: "Company Name" },
+    { key: "personName", label: "Person Name" },
     { key: "phoneNumber", label: "Phone No." },
+    { key: "lastFollowUpDate", label: "Last Follow Up Date" },
+    { key: "nextCallDate", label: "Next Follow Up Date" },
+    { key: "customerSay", label: "What Did Customer Say" },
+    { key: "noOfFollowUps", label: "No of Follow Ups" },
     { key: "address", label: "Shipping Address" },
     { key: "receiverName", label: "Lead Receiver Name" },
     { key: "assignedTo", label: "Assigned To" },
-    { key: "nextCallDate", label: "Calling Date" },
-    { key: "personName", label: "Person Name" },
-    { key: "lastFollowUpDate", label: "Last Follow Up Date" },
     { key: "lastFollowUpStatus", label: "Last Follow Up Status" },
-    { key: "customerSay", label: "What Did Customer Say" },
     { key: "nextAction", label: "Next Action" },
-    { key: "noOfFollowUps", label: "No of Follow Ups" },
     { key: "location", label: "Location" },
     { key: "enquiryStatus", label: "Enquiry Status" },
     { key: "email", label: "Email Address" },
@@ -718,17 +718,17 @@ function CallTracker() {
         </td>
       )}
       {visibleColumnsPending.companyName && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500"><div className="max-w-[150px] truncate" title={followUp.companyName}>{followUp.companyName}</div></td>}
+      {visibleColumnsPending.personName && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.personName}</td>}
       {visibleColumnsPending.phoneNumber && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.phoneNumber}</td>}
+      {visibleColumnsPending.lastFollowUpDate && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.lastFollowUpDate}</td>}
+      {visibleColumnsPending.nextCallDate && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{displayDate(followUp.nextCallDate, "-")}</td>}
+      {visibleColumnsPending.customerSay && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500"><div className="max-w-[200px] truncate" title={followUp.customerSay}>{followUp.customerSay}</div></td>}
+      {visibleColumnsPending.noOfFollowUps && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.noOfFollowUps}</td>}
       {visibleColumnsPending.address && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.address || "—"}</td>}
       {visibleColumnsPending.receiverName && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.receiver || "—"}</td>}
       {visibleColumnsPending.assignedTo && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500"><div className="max-w-[120px] truncate" title={followUp.assignedTo}>{followUp.assignedTo}</div></td>}
-      {visibleColumnsPending.nextCallDate && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{displayDate(followUp.nextCallDate, "-")}</td>}
-      {visibleColumnsPending.personName && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.personName}</td>}
-      {visibleColumnsPending.lastFollowUpDate && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.lastFollowUpDate}</td>}
       {visibleColumnsPending.lastFollowUpStatus && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.lastFollowUpStatus}</td>}
-      {visibleColumnsPending.customerSay && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500"><div className="max-w-[200px] truncate" title={followUp.customerSay}>{followUp.customerSay}</div></td>}
       {visibleColumnsPending.nextAction && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.nextAction}</td>}
-      {visibleColumnsPending.noOfFollowUps && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.noOfFollowUps}</td>}
       {visibleColumnsPending.location && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500"><div className="max-w-[120px] truncate" title={followUp.location}>{followUp.location}</div></td>}
       {visibleColumnsPending.enquiryStatus && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500"><div className="max-w-[120px] truncate" title={followUp.enquiryStatus}>{followUp.enquiryStatus}</div></td>}
       {visibleColumnsPending.email && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.email}</td>}
@@ -766,13 +766,12 @@ function CallTracker() {
       {visibleColumns.personName && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.personName}</td>}
       {visibleColumns.phoneNumber && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.phoneNumber}</td>}
       {visibleColumns.nextCallDate && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.nextCallDate}</td>}
-      {visibleColumns.nextAction && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.nextAction}</td>}
       {visibleColumns.customerSay && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500"><div className="max-w-[200px] truncate" title={followUp.customerSay}>{followUp.customerSay}</div></td>}
-      
+      {visibleColumns.noOfFollowUps && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.noOfFollowUps}</td>}
+      {visibleColumns.nextAction && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.nextAction}</td>}
       {visibleColumns.timestamp && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.timestamp}</td>}
       {visibleColumns.callingCount && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.callingCount}</td>}
       {visibleColumns.enquiryCallingCount && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.enquiryCallingCount}</td>}
-      {visibleColumns.noOfFollowUps && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.noOfFollowUps}</td>}
       {visibleColumns.lastFollowUpStatus && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.lastFollowUpStatus}</td>}
       {visibleColumns.enquiryStatus && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.enquiryReceivedStatus}</td>}
       {visibleColumns.receivedDate && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.enquiryReceivedDate}</td>}
