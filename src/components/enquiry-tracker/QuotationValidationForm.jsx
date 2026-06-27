@@ -33,6 +33,7 @@ function QuotationValidationForm({ formData, onFieldChange, enquiryNo }) {
 
 
   useEffect(() => {
+    let isMounted = true;
     const fetchQuotationNumbers = async () => {
       if (!enquiryNo) return
 
@@ -40,20 +41,23 @@ function QuotationValidationForm({ formData, onFieldChange, enquiryNo }) {
         setIsLoadingQuotations(true)
         const matchingQuotations = await mockApi.fetchQuotationsForEnquiry(enquiryNo);
 
-        setQuotationNumbers(matchingQuotations)
+        if (isMounted) {
+          setQuotationNumbers(matchingQuotations)
 
-        if (matchingQuotations.length > 0 && !formData.validationQuotationNumber) {
-          onFieldChange('validationQuotationNumber', matchingQuotations[0])
+          if (matchingQuotations.length > 0 && !formData.validationQuotationNumber) {
+            onFieldChange('validationQuotationNumber', matchingQuotations[0])
+          }
         }
       } catch (error) {
         console.error("Error fetching quotation numbers:", error)
       } finally {
-        setIsLoadingQuotations(false)
+        if (isMounted) setIsLoadingQuotations(false)
       }
     }
 
     fetchQuotationNumbers()
-  }, [enquiryNo, formData.validationQuotationNumber, onFieldChange])
+    return () => { isMounted = false; }
+  }, [enquiryNo])
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -70,31 +74,20 @@ function QuotationValidationForm({ formData, onFieldChange, enquiryNo }) {
           <label htmlFor="validationQuotationNumber" className="block text-sm font-medium text-gray-700">
             Quotation Number
           </label>
-          {isLoadingQuotations ? (
-            <div className="flex items-center space-x-2">
-              <input
-                id="validationQuotationNumber"
-                name="validationQuotationNumber"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500"
-                placeholder="Loading quotation numbers..."
-                value={formData.validationQuotationNumber || ""}
-                onChange={handleChange}
-                disabled
-                required
-              />
-              <div className="text-sm text-gray-500">Loading...</div>
-            </div>
-          ) : (
+          <div className="relative">
             <input
               id="validationQuotationNumber"
               name="validationQuotationNumber"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500"
-              placeholder="Enter quotation number"
+              placeholder={isLoadingQuotations ? "Loading quotation numbers..." : "Enter quotation number"}
               value={formData.validationQuotationNumber || ""}
               onChange={handleChange}
               required
             />
-          )}
+            {isLoadingQuotations && (
+              <div className="absolute right-3 top-2.5 text-xs text-gray-400">Loading...</div>
+            )}
+          </div>
           {enquiryNo && quotationNumbers.length > 0 && !isLoadingQuotations && (
             <div className="text-xs text-green-600 mt-1">
               {quotationNumbers.length === 1

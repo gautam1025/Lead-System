@@ -60,6 +60,7 @@ function CallTracker() {
     callDate: false,
     callTime: false,
     itemQty: false,
+    handlePerson: true,
   })
   const [visibleColumnsPending, setVisibleColumnsPending] = useState({
     timestamp: true,
@@ -95,6 +96,7 @@ function CallTracker() {
     gst: false,
     additionalNotes: false,
     groupName: false,
+    handlePerson: true,
   })
   const [showColumnDropdown, setShowColumnDropdown] = useState(false)
 
@@ -576,6 +578,7 @@ function CallTracker() {
     { key: "leadNo", label: "Lead No." },
     { key: "companyName", label: "Company Name" },
     { key: "personName", label: "Person Name" },
+    { key: "handlePerson", label: "Handle Person" },
     { key: "phoneNumber", label: "Phone Number" },
     { key: "nextCallDate", label: "Next Follow Up Date" },
     { key: "customerSay", label: "What Did Customer Say" },
@@ -643,6 +646,7 @@ function CallTracker() {
     { key: "leadSource", label: "Lead Source" },
     { key: "companyName", label: "Company Name" },
     { key: "personName", label: "Person Name" },
+    { key: "handlePerson", label: "Handle Person" },
     { key: "phoneNumber", label: "Phone No." },
     { key: "lastFollowUpDate", label: "Last Follow Up Date" },
     { key: "nextCallDate", label: "Next Follow Up Date" },
@@ -719,6 +723,7 @@ function CallTracker() {
       )}
       {visibleColumnsPending.companyName && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500"><div className="max-w-[150px] truncate" title={followUp.companyName}>{followUp.companyName}</div></td>}
       {visibleColumnsPending.personName && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.personName}</td>}
+      {visibleColumnsPending.handlePerson && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap"><span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700">{followUp.handlePerson || "—"}</span></td>}
       {visibleColumnsPending.phoneNumber && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.phoneNumber}</td>}
       {visibleColumnsPending.lastFollowUpDate && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.lastFollowUpDate}</td>}
       {visibleColumnsPending.nextCallDate && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{displayDate(followUp.nextCallDate, "-")}</td>}
@@ -764,6 +769,7 @@ function CallTracker() {
       {visibleColumns.leadNo && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.leadNo}</td>}
       {visibleColumns.companyName && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500"><div className="max-w-[150px] truncate">{followUp.companyName}</div></td>}
       {visibleColumns.personName && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.personName}</td>}
+      {visibleColumns.handlePerson && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap"><span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700">{followUp.handlePerson || "—"}</span></td>}
       {visibleColumns.phoneNumber && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.phoneNumber}</td>}
       {visibleColumns.nextCallDate && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500 whitespace-nowrap">{followUp.nextCallDate}</td>}
       {visibleColumns.customerSay && <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-500"><div className="max-w-[200px] truncate" title={followUp.customerSay}>{followUp.customerSay}</div></td>}

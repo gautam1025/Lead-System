@@ -47,6 +47,14 @@ function ClientMaster() {
           .filter(Boolean)
       );
 
+      const companyHandlePersonMap = {};
+      [...(followUps.pending || []), ...(followUps.history || []), ...(callTrackers.pending || []), ...(callTrackers.history || [])].forEach(item => {
+        const cName = (item.companyName || item.company || "").toLowerCase().trim();
+        if (cName && item.handlePerson) {
+          companyHandlePersonMap[cName] = item.handlePerson;
+        }
+      });
+
       const formattedData = apiCompanies.map((c, i) => {
         const nameLower = (c.name || "").toLowerCase().trim();
         const inLead = followUpCompanies.has(nameLower);
@@ -65,6 +73,7 @@ function ClientMaster() {
           id: i + 1,
           companyName: c.name || "",
           personName: c.salesPerson || "",
+          handlePerson: c.handlePerson || companyHandlePersonMap[nameLower] || "-",
           personNumber: c.phoneNumber || "",
           location: c.location || "",
           emailAddress: c.email || "",
@@ -167,6 +176,7 @@ function ClientMaster() {
     "Company Name", 
     "Already In Tracker",
     "Person Name", 
+    "Handle Person",
     "Person Number", 
     "Location", 
     "Email Address", 
@@ -236,6 +246,15 @@ function ClientMaster() {
           )}
         </td>
         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{row.personName}</td>
+        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+          {row.handlePerson !== "-" ? (
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700">
+              {row.handlePerson}
+            </span>
+          ) : (
+            <span className="text-gray-400">-</span>
+          )}
+        </td>
         <td className="px-6 py-4 whitespace-nowrap text-sm text-sky-600 font-medium">{row.personNumber}</td>
         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{row.location}</td>
         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{row.emailAddress}</td>
@@ -277,6 +296,9 @@ function ClientMaster() {
         </div>
         <div className="text-sm text-gray-600 mb-1">
           <span className="font-medium text-gray-800">Contact:</span> {item.personName}
+        </div>
+        <div className="text-sm text-gray-600 mb-1">
+          <span className="font-medium text-gray-800">Handle Person:</span> {item.handlePerson}
         </div>
         <div className="text-sm text-gray-600 mb-4">
           <span className="font-medium text-gray-800">Email:</span> {item.emailAddress}

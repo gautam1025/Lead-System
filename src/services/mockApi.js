@@ -28,7 +28,7 @@ const initDB = () => {
         // Add users array to existing database if it doesn't exist
         const db = JSON.parse(localStorage.getItem(DB_KEY));
         let needsUpdate = false;
-        
+
         if (!db.users) {
             db.users = users;
             needsUpdate = true;
@@ -67,7 +67,7 @@ const initDB = () => {
             ];
             needsUpdate = true;
         }
-        
+
         if (needsUpdate) {
             localStorage.setItem(DB_KEY, JSON.stringify(db));
         }
@@ -100,6 +100,22 @@ const getDB = () => {
 const saveDB = (data) => {
     localStorage.setItem(DB_KEY, JSON.stringify(data));
 };
+
+const getNextHandlePerson = (db) => {
+    const assignedLeads = (db.fmsData || []).filter(l => l.handlePerson === 'Nikita' || l.handlePerson === 'Priya');
+    if (assignedLeads.length === 0) {
+        return 'Nikita';
+    }
+    const lastAssigned = assignedLeads[assignedLeads.length - 1].handlePerson;
+    return lastAssigned === 'Nikita' ? 'Priya' : 'Nikita';
+};
+
+const isCrrOrNbdCrr = (st) => {
+    if (!st) return false;
+    const clean = String(st).toLowerCase().trim();
+    return clean === "crr" || clean === "nbd_crr" || clean === "nbd-crr" || clean === "nbd crr";
+};
+
 
 export const mockApi = {
     clearAllData: async () => {
@@ -362,11 +378,12 @@ export const mockApi = {
             phoneNumber3: leadData.contactPersons?.[2]?.number || "",
             natureOfBusiness: leadData.nob || "",
             salesType: leadData.salesType || "",
+            handlePerson: isCrrOrNbdCrr(leadData.salesType) ? getNextHandlePerson(db) : "",
             additionalNotes: leadData.notes || "",
             groupName: leadData.groupName || ""
         };
         db.fmsData.push(newLead);
-        
+
         if (leadData.source === "Other" && leadData.scName) {
             if (!db.scMaster) db.scMaster = [];
             const exists = db.scMaster.some(sc => sc.sourceName === "Other" && sc.personName === leadData.scName);
@@ -432,6 +449,7 @@ export const mockApi = {
                 phoneNumber3: leadData.person3Phone || "",
                 natureOfBusiness: leadData.nob || "",
                 salesType: leadData.salesType || "",
+                handlePerson: leadData.handlePerson || (isCrrOrNbdCrr(leadData.salesType) ? getNextHandlePerson(db) : ""),
                 additionalNotes: leadData.additionalNotes || "",
                 groupName: leadData.groupName || ""
             };
@@ -492,7 +510,8 @@ export const mockApi = {
             natureOfBusiness: row.natureOfBusiness || "",
             gst: row.gst || "",
             additionalNotes: row.additionalNotes || "",
-            groupName: row.groupName || ""
+            groupName: row.groupName || "",
+            handlePerson: row.handlePerson || ""
         })).reverse();
 
         // Combine enquiryTracker and followUpHistory to ensure all history shows
@@ -526,16 +545,16 @@ export const mockApi = {
                 assignedTo: row.assignedTo,
                 itemQty: ""
             };
-            
+
             if (row.items && Array.isArray(row.items)) {
                 row.items.forEach((item, idx) => {
                     if (idx < 5) {
-                        historyObj[`itemName${idx+1}`] = item.name;
-                        historyObj[`itemQty${idx+1}`] = item.quantity;
+                        historyObj[`itemName${idx + 1}`] = item.name;
+                        historyObj[`itemQty${idx + 1}`] = item.quantity;
                     }
                 });
             }
-            
+
             return historyObj;
         }).reverse();
 
@@ -549,13 +568,13 @@ export const mockApi = {
         await simulateDelay();
         console.log("Mock submit follow up:", data);
         const db = getDB();
-        
+
         // Find the lead
         const leadIdToFind = data.leadNo || data.leadId;
         const leadIndex = db.fmsData.findIndex(l => l.leadNumber === leadIdToFind);
         if (leadIndex !== -1) {
             const lead = db.fmsData[leadIndex];
-            
+
             // Add to follow-up history
             if (!db.followUpHistory) db.followUpHistory = [];
             db.followUpHistory.push({
@@ -580,7 +599,7 @@ export const mockApi = {
             if (data.enquiryStatus === "yes") {
                 db.fmsData[leadIndex].hasPendingFollowUp = false;
                 db.fmsData[leadIndex].hasPendingCallTracker = true; // Moves it to Enquiry Tracker pending
-                
+
                 // Update lead properties with any user changes from the form
                 if (data.leadSource !== undefined) db.fmsData[leadIndex].source = data.leadSource;
                 if (data.scName !== undefined) db.fmsData[leadIndex].scName = data.scName;
@@ -597,7 +616,12 @@ export const mockApi = {
                 if (data.gstNumber !== undefined) db.fmsData[leadIndex].gst = data.gstNumber;
                 if (data.enquiryState !== undefined) db.fmsData[leadIndex].state = data.enquiryState;
                 if (data.projectName !== undefined) db.fmsData[leadIndex].natureOfBusiness = data.projectName;
-                if (data.salesType !== undefined) db.fmsData[leadIndex].salesType = data.salesType;
+                if (data.salesType !== undefined) {
+                    db.fmsData[leadIndex].salesType = data.salesType;
+                    if (isCrrOrNbdCrr(data.salesType) && !db.fmsData[leadIndex].handlePerson) {
+                        db.fmsData[leadIndex].handlePerson = getNextHandlePerson(db);
+                    }
+                }
                 if (data.enquiryApproach !== undefined) db.fmsData[leadIndex].enquiryApproach = data.enquiryApproach;
                 if (data.enquiryDate !== undefined) db.fmsData[leadIndex].enquiryDate = data.enquiryDate;
             } else if (data.enquiryStatus === "expected") {
@@ -610,7 +634,7 @@ export const mockApi = {
                 db.fmsData[leadIndex].hasPendingFollowUp = false;
                 db.fmsData[leadIndex].hasPendingCallTracker = false;
             }
-            
+
             saveDB(db);
             return { success: true };
         }
@@ -681,6 +705,7 @@ export const mockApi = {
             salesType: row.salesType || "",
             enquiryApproach: row.enquiryApproach || "",
             customerFeedback: row.customerSay || "",
+            handlePerson: row.handlePerson || ""
         })).reverse();
 
         // History Enquiry Trackers
@@ -693,7 +718,7 @@ export const mockApi = {
             const fmsLead = db.fmsData.find(l => l.leadNumber === leadId) || {};
             const dirEnq = db.enquiryToOrder.find(e => e.leadNumber === leadId) || {};
             const shippingAddress = row.shippingAddress || dirEnq.shippingAddress || fmsLead.shippingAddress || fmsLead.address || "";
-            
+
             // Format itemQty from array if present
             let formattedItemQty = "";
             let totalQtyVal = 0;
@@ -837,9 +862,12 @@ export const mockApi = {
             companyName = db.fmsData[leadIndex].company || companyName;
             assignedTo = db.fmsData[leadIndex].assignedUser || assignedTo;
             fmsLead = db.fmsData[leadIndex];
-            
+
             if (isOrderReceived) {
                 db.fmsData[leadIndex].hasPendingCallTracker = false;
+                if (!db.fmsData[leadIndex].handlePerson) {
+                    db.fmsData[leadIndex].handlePerson = getNextHandlePerson(db);
+                }
             } else {
                 db.fmsData[leadIndex].hasPendingCallTracker = true;
                 db.fmsData[leadIndex].currentStage = currentStage;
@@ -871,6 +899,7 @@ export const mockApi = {
                 db.companies.push({
                     name: companyName,
                     salesPerson: assignedTo,
+                    handlePerson: fmsLead.handlePerson || (leadIndex !== -1 ? db.fmsData[leadIndex].handlePerson : "") || "",
                     phoneNumber: dirEnq.phoneNumber || fmsLead.phoneNumber || "9876543210",
                     email: dirEnq.emailAddress || fmsLead.email || "",
                     location: dirEnq.location || fmsLead.location || "",
@@ -927,13 +956,13 @@ export const mockApi = {
         console.log(`Mock ${action} quotation:`, data);
         const db = getDB();
         const quotationNumber = data.quotationNumber || `NBD-2526-${Date.now().toString().slice(-4)}`;
-        
+
         db.quotations.push({
             ...data,
             quotationNo: quotationNumber,
             date: new Date().toLocaleDateString('en-GB')
         });
-        
+
         saveDB(db);
         return { success: true, quotationNumber };
     },
@@ -1068,14 +1097,14 @@ export const mockApi = {
         await simulateDelay();
         console.log(`Mock ${action} direct enquiry:`, data);
         const db = getDB();
-        
+
         const enquiryNo = data.trackerData?.enquiryNo || `DIR-${Date.now().toString().slice(-4)}`;
         const companyName = data.trackerData?.companyName;
-        
+
         if (action === "insert") {
             const source = data.trackerData?.leadSource;
             const scName = data.trackerData?.scName;
-            
+
             if (source === "Other" && scName) {
                 if (!db.scMaster) db.scMaster = [];
                 const exists = db.scMaster.some(sc => sc.sourceName === "Other" && sc.personName === scName);
@@ -1107,7 +1136,7 @@ export const mockApi = {
                 shippingAddress: data.trackerData?.shippingAddress || ""
             });
         }
-        
+
         saveDB(db);
         return { success: true };
     },
@@ -1138,7 +1167,7 @@ export const mockApi = {
 
         const db = getDB();
         const allCompanies = db.companies || [];
-        
+
         allCompanies.forEach(comp => {
             response.companies[comp.name] = {
                 address: comp.location,
@@ -1160,7 +1189,7 @@ export const mockApi = {
                 msmeNumber: "MSME..."
             };
         });
-        
+
         dropdowns.receivers.forEach(ref => {
             response.references[ref] = {
                 mobile: "9999999999"
@@ -1252,7 +1281,7 @@ export const mockApi = {
     fetchCallingReportMetrics: async (filters) => {
         await simulateDelay();
         const db = getDB();
-        
+
         let totalLeads = 0;
         let calls = 0;
         let enquiries = 0;
@@ -1260,14 +1289,14 @@ export const mockApi = {
         let orders = 0;
         let quotationValue = 0;
         let orderQuotationValue = 0;
-        
+
         const isDateInRange = (dateStr, start, end) => {
             if (!dateStr) return false;
             // Basic date mock parsing assuming "DD/MM/YYYY" or similar from mock db
             const target = new Date().getTime(); // Simplification for mock
             const s = start ? new Date(start).setHours(0, 0, 0, 0) : null;
             const e = end ? new Date(end).setHours(23, 59, 59, 999) : null;
-            
+
             if (s && target < s) return false;
             if (e && target > e) return false;
             return true;
@@ -1300,21 +1329,21 @@ export const mockApi = {
     fetchFosReportMetrics: async (filters) => {
         await simulateDelay();
         const db = getDB();
-        
+
         let enquiryCount = 0;
         let totalValue = 0;
         let convertedValue = 0;
         let orderConvert = 0;
-        
+
         let pipelineEnquiryCount = 0;
         let pipelineTotalValue = 0;
-        
+
         db.enquiryToOrder.forEach(row => {
             if (filters.receiverName !== "all" && row.assignedUser !== filters.receiverName) return;
-            
+
             enquiryCount++;
             totalValue += 50000; // Mock value
-            
+
             if (row.status !== "Pending") {
                 orderConvert++;
                 convertedValue += 50000;
@@ -1323,12 +1352,12 @@ export const mockApi = {
                 pipelineTotalValue += 50000;
             }
         });
-        
+
         const FOS_RECEIVERS = [
             "PRANAV VINAYAKRAO BHOGAWAR", "RANJAN KUMAR PRUSTY", "SAMIRAN RAJBONGSHI",
             "ROSHAN DEWANGAN", "TUSHAR ATRAM", "SUBHRAJIT BEHERA", "MANOSH ROY CHOUDHURY", "AMAN JHA"
         ];
-        
+
         let conversionMetrics = FOS_RECEIVERS.map(name => ({
             name: name,
             totalEnquiries: 10,
